@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+# nunca versionar credencial ou dado de conta, nem por acidente
+credenciais.txt
+.env
+tokens.json
+.oauth_state
+ABRIR_NO_NAVEGADOR.txt
+RETORNO.txt
+elo-*.json
+painel.html
