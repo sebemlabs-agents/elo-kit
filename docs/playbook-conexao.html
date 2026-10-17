@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Playbook de conexão — elo-kit</title>
+<style>
+  @page { size: A4; margin: 14mm 14mm 16mm; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; color: #15201d; background: #fff;
+    font: 10.5pt/1.45 -apple-system, "Helvetica Neue", Arial, sans-serif;
+  }
+  .doc { max-width: 180mm; margin: 0 auto; }
+  h1 { font-size: 19pt; margin: 0 0 2mm; letter-spacing: -.01em; }
+  .sub { color: #4b5853; font-size: 10pt; margin: 0 0 1mm; }
+  .fonte { color: #7b8782; font-size: 8.5pt; margin: 0 0 6mm; }
+  h2 {
+    font-size: 11.5pt; margin: 7mm 0 2.5mm; padding-bottom: 1.5mm;
+    border-bottom: 1.2pt solid #1f5f73; color: #15485a;
+    page-break-after: avoid;
+  }
+  h3 { font-size: 10pt; margin: 4mm 0 1.5mm; page-break-after: avoid; }
+  p { margin: 0 0 2mm; }
+  ul, ol { margin: 0 0 2.5mm; padding-left: 5mm; }
+  li { margin-bottom: 1.2mm; }
+  code {
+    font-family: "SF Mono", Menlo, monospace; font-size: 9pt;
+    background: #eef2f1; padding: .5mm 1.2mm; border-radius: 1mm;
+  }
+  pre {
+    background: #15201d; color: #e9efec; padding: 3mm 4mm; border-radius: 1.5mm;
+    font-family: "SF Mono", Menlo, monospace; font-size: 8.8pt; line-height: 1.5;
+    margin: 0 0 3mm; white-space: pre-wrap; page-break-inside: avoid;
+  }
+  .regra {
+    border-left: 2.5pt solid #a8640c; background: #fbf3e6;
+    padding: 3mm 4mm; margin: 0 0 4mm; page-break-inside: avoid;
+  }
+  .regra strong { color: #8a5209; }
+  .msg {
+    border: 1pt dashed #7b8782; background: #fafbfa; padding: 3.5mm 4mm;
+    margin: 0 0 3mm; font-size: 9.5pt; page-break-inside: avoid;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 9pt; margin: 0 0 3mm; }
+  th, td { text-align: left; padding: 1.8mm 2.5mm; border-top: .5pt solid #d6dcd8; vertical-align: top; }
+  thead th { border-top: 0; background: #eef2f1; font-size: 8pt; text-transform: uppercase; letter-spacing: .04em; color: #4b5853; }
+  tbody tr { page-break-inside: avoid; }
+  .ficha { border: 1pt solid #1f5f73; padding: 4mm; page-break-inside: avoid; }
+  .ficha td { border-top: .5pt solid #d6dcd8; padding: 2.2mm 2.5mm; }
+  .linha { display: inline-block; border-bottom: .5pt solid #7b8782; min-width: 28mm; }
+  .nota { color: #4b5853; font-size: 9pt; }
+  footer { margin-top: 8mm; padding-top: 2mm; border-top: .5pt solid #d6dcd8; color: #7b8782; font-size: 8pt; }
+</style>
+</head>
+<body>
+<div class="doc">
+
+<h1>Playbook de conexão</h1>
+<p class="sub">Como conduzir o primeiro teste do <strong>elo-kit</strong> com um seller que nunca conectou nada.</p>
+<p class="fonte">github.com/sebemlabs-agents/elo-kit · LST-17589 · 17 out 2026</p>
+
+<div class="regra">
+  <p><strong>A regra que define o teste:</strong> quem conduz é a skill, não você.</p>
+  <p class="nota" style="margin:0">Se você narrar o passo a passo ou pegar o teclado, o teste perde o sentido — no evento você não vai estar ao lado de 40 pessoas. O que está sendo medido é se <em>a skill</em> atravessa alguém sozinha. Seu papel é observar, cronometrar e só destravar quando ele realmente empacar.</p>
+</div>
+
+<h2>1 · Antes da call — 5 minutos</h2>
+<p>Confirme que ele tem, <em>sem você no meio</em>:</p>
+<ul>
+  <li><strong>Python 3.8 ou mais novo.</strong> Ele roda <code>python3 --version</code> e te manda a saída.</li>
+  <li><strong>Conta administradora</strong> do Mercado Livre — a que acessa o financeiro. Operador e colaborador não conseguem autorizar.</li>
+  <li><strong>Uma pasta nova, fora</strong> de Dropbox, iCloud, Google Drive e OneDrive.</li>
+</ul>
+<p>Você tenha aberto, em outra janela: a tabela de problemas da skill (<code>references/problemas.md</code>) e este playbook. Não abra para ele.</p>
+<p><strong>Combine o enquadramento:</strong> é a primeira rodada, leva uns 15 minutos, e ele sai com o radar de promoções funcionando. É troca, não favor — isso tira a pressão dos dois lados se algo travar.</p>
+
+<h2>2 · O que você manda antes (copie e cole)</h2>
+<div class="msg">
+  <p>Oi! Amanhã a gente vai conectar o Claude na sua conta do Mercado Livre, <strong>só leitura</strong> — nada é alterado na sua loja. Em uns 15 min você sai com um radar que mostra as promoções que estão acabando e o que vale aderir.</p>
+  <p>Pra chegar pronto, três coisas:</p>
+  <p>1. Roda no terminal <code>python3 --version</code> e me manda o que apareceu.<br>
+     2. Confirma que você tem o login da <strong>conta administradora</strong> do Meli (a que vê o financeiro).<br>
+     3. Cria uma pasta nova chamada <code>elo-meli</code> em Documentos — <strong>fora</strong> de Dropbox, iCloud ou Google Drive — e conecta ela no Claude.</p>
+  <p>Na call você vai rodar só isso:</p>
+  <p><code>claude plugin marketplace add sebemlabs-agents/elo-kit</code><br>
+     <code>claude plugin install elo-kit@elo-kit</code></p>
+  <p>E depois pedir pro Claude: <strong>"conecta minha conta do Mercado Livre"</strong>. Ele conduz o resto.</p>
+</div>
+<p class="nota">Não mande mais que isso. O resto é o que está sendo testado.</p>
+
+<h2>3 · Durante — o que fazer e o que não fazer</h2>
+<table>
+  <thead><tr><th style="width:38%">Momento</th><th>Seu papel</th></tr></thead>
+  <tbody>
+    <tr><td>Instalação do plugin</td><td>Observar. Se der erro, peça a saída inteira do comando antes de opinar.</td></tr>
+    <tr><td>Criação do app no DevCenter</td><td><strong>Fique calado.</strong> É o passo que quebrou na #3 — você precisa ver onde ele hesita sem ajuda.</td></tr>
+    <tr><td>Preencher as credenciais</td><td>Confirme que ele <strong>não colou no chat</strong>. Se colou, anote: o texto da skill falhou em avisar.</td></tr>
+    <tr><td>Autorizar no navegador</td><td>O erro de página é esperado. Veja se ele entende isso sozinho ou se assusta.</td></tr>
+    <tr><td>Confirmar a conta</td><td>Deixe ele dizer se o apelido é o da loja dele.</td></tr>
+    <tr><td>O recibo final</td><td>Pergunte: <em>"ficou claro o que isso nunca faz?"</em> e <em>"você sabe onde desligar?"</em></td></tr>
+  </tbody>
+</table>
+
+<h2>4 · Os seis tropeços conhecidos</h2>
+<p class="nota">Só intervenha depois de ele tentar. Anote em qual deles ele caiu.</p>
+<table>
+  <thead><tr><th style="width:33%">O que aparece</th><th>O que é</th><th style="width:30%">O que fazer</th></tr></thead>
+  <tbody>
+    <tr><td>O script para dizendo que a pasta sincroniza</td><td>pasta dentro de Dropbox, iCloud, Drive ou OneDrive</td><td><strong>Não contorne.</strong> Pasta nova fora do serviço e começa ali</td></tr>
+    <tr><td><code>invalid_operator_user_id</code></td><td>autorizou com conta de operador</td><td>repetir com a conta administradora</td></tr>
+    <tr><td>"your client callback has to match with the redirect_uri param"</td><td>a URL do arquivo não é idêntica à do DevCenter</td><td>comparar caractere por caractere, inclusive barra final</td></tr>
+    <tr><td>Toda chamada falha antes de chegar ao Meli</td><td><code>api.mercadolibre.com</code> fora dos domínios permitidos</td><td>em conta de empresa só o admin libera — pode não dar hoje</td></tr>
+    <tr><td><code>python3</code> não existe, ou é 3.7</td><td>Python ausente ou antigo</td><td>instalar do site oficial marcando "Add to PATH"</td></tr>
+    <tr><td>"não devolveu renovação automática"</td><td>app sem acesso offline</td><td>habilitar no DevCenter e autorizar de novo</td></tr>
+  </tbody>
+</table>
+
+<h2>5 · Se travar de verdade: a saída</h2>
+<p>Modo demonstração. Ele constrói tudo igual, com dados preparados, e o painel marca isso de forma visível. Combine que ele cria o aplicativo depois, com calma, fora do horário de operação.</p>
+<p><strong>Travar não invalida o teste</strong> — pelo contrário. Saber exatamente onde um seller real empaca é mais valioso que uma conexão lisa, porque é isso que você vai ter que resolver 40 vezes em novembro.</p>
+
+<h2>6 · A ficha — preencha durante, não depois</h2>
+<div class="ficha">
+  <table>
+    <tr><td style="width:58%">Mentorado e tipo de conta</td><td><span class="linha"></span></td></tr>
+    <tr><td>Sistema (Mac / Windows) e versão do Python</td><td><span class="linha"></span></td></tr>
+    <tr><td><strong>Tempo total</strong>, do primeiro comando ao painel</td><td><span class="linha"></span></td></tr>
+    <tr><td><strong>Tempo até o primeiro número</strong> na tela</td><td><span class="linha"></span></td></tr>
+    <tr><td>Em que passo ele hesitou mais, e quanto tempo</td><td><span class="linha"></span></td></tr>
+    <tr><td>Em qual dos seis tropeços ele caiu</td><td><span class="linha"></span></td></tr>
+    <tr><td>Pergunta que ele fez e a skill deveria ter respondido</td><td><span class="linha"></span></td></tr>
+    <tr><td>Ele entendeu o que o pacote <strong>não</strong> faz? (sim / não)</td><td><span class="linha"></span></td></tr>
+    <tr><td>Ele soube dizer onde revogar? (sim / não)</td><td><span class="linha"></span></td></tr>
+    <tr><td>Precisou de modo demonstração? Por quê</td><td><span class="linha"></span></td></tr>
+  </table>
+  <h3 style="margin-top:4mm">A frase dele, literal, ao ver os próprios números</h3>
+  <p class="nota" style="margin-bottom:2mm">Anote palavra por palavra. É isto que vai pro palco e pra conversa com o Bruno.</p>
+  <p><span class="linha" style="min-width:100%"></span></p>
+  <p><span class="linha" style="min-width:100%"></span></p>
+</div>
+
+<h2>7 · Depois da call — o que me mandar</h2>
+<ol>
+  <li>A ficha preenchida, mesmo incompleta.</li>
+  <li><strong>A saída inteira</strong> de qualquer comando que deu erro — não o resumo, o texto.</li>
+  <li>O que ele perguntou que a skill não respondeu. Isso vira texto novo na skill.</li>
+  <li>Se o painel mostrou <strong>zero</strong> em algum lugar onde devia dizer "não veio". Isso é bug e eu quero saber.</li>
+</ol>
+<p>Com isso eu ajusto a skill e a tabela de problemas antes de segunda — e você entra na reunião podendo dizer, com número: <em>"testei com um seller que nunca tinha conectado nada; levou X minutos"</em>.</p>
+
+<footer>
+  elo-kit · playbook de condução do teste de conexão · Marciano Chula / Elo · uso interno
+</footer>
+
+</div>
+</body>
+</html>
