@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Conecte sua conta do Mercado Livre — elo-kit</title>
+<style>
+  @page { size: A4; margin: 14mm 14mm 16mm; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; color: #15201d; background: #fff;
+    font: 10.5pt/1.5 -apple-system, "Helvetica Neue", Arial, sans-serif;
+  }
+  .doc { max-width: 180mm; margin: 0 auto; }
+  h1 { font-size: 20pt; margin: 0 0 2mm; letter-spacing: -.01em; }
+  .sub { color: #4b5853; font-size: 10.5pt; margin: 0 0 1mm; }
+  .fonte { color: #7b8782; font-size: 8.5pt; margin: 0 0 6mm; }
+  h2 {
+    font-size: 12pt; margin: 7mm 0 2.5mm; padding-bottom: 1.5mm;
+    border-bottom: 1.2pt solid #1f5f73; color: #15485a; page-break-after: avoid;
+  }
+  h3 { font-size: 10.5pt; margin: 4mm 0 1.5mm; page-break-after: avoid; }
+  p { margin: 0 0 2.5mm; }
+  ul, ol { margin: 0 0 3mm; padding-left: 5mm; }
+  li { margin-bottom: 1.5mm; }
+  code {
+    font-family: "SF Mono", Menlo, monospace; font-size: 9pt;
+    background: #eef2f1; padding: .5mm 1.2mm; border-radius: 1mm;
+  }
+  pre {
+    background: #15201d; color: #e9efec; padding: 3mm 4mm; border-radius: 1.5mm;
+    font-family: "SF Mono", Menlo, monospace; font-size: 9pt; line-height: 1.6;
+    margin: 0 0 3mm; white-space: pre-wrap; page-break-inside: avoid;
+  }
+  .promessa {
+    border: 1.2pt solid #1f5f73; background: #f2f7f8; padding: 4mm 5mm;
+    margin: 0 0 5mm; page-break-inside: avoid;
+  }
+  .promessa h3 { margin-top: 0; color: #15485a; }
+  .promessa ul { margin-bottom: 0; }
+  .ok {
+    border-left: 2.5pt solid #2a6b45; background: #f1f7f3;
+    padding: 2.5mm 4mm; margin: 0 0 3.5mm; font-size: 9.8pt;
+    page-break-inside: avoid;
+  }
+  .ok strong { color: #225637; }
+  .calma {
+    border-left: 2.5pt solid #a8640c; background: #fbf3e6;
+    padding: 3mm 4mm; margin: 0 0 4mm; page-break-inside: avoid;
+  }
+  .calma strong { color: #8a5209; }
+  .passo {
+    display: flex; gap: 3mm; align-items: baseline;
+    margin: 6mm 0 2mm; page-break-after: avoid;
+  }
+  .passo .n {
+    font-size: 15pt; font-weight: 700; color: #1f5f73; min-width: 7mm;
+  }
+  .passo .t { font-size: 12pt; font-weight: 600; }
+  table { width: 100%; border-collapse: collapse; font-size: 9.2pt; margin: 0 0 3mm; }
+  th, td { text-align: left; padding: 2mm 2.5mm; border-top: .5pt solid #d6dcd8; vertical-align: top; }
+  thead th { border-top: 0; background: #eef2f1; font-size: 8pt; text-transform: uppercase; letter-spacing: .04em; color: #4b5853; }
+  tbody tr { page-break-inside: avoid; }
+  .nota { color: #4b5853; font-size: 9.2pt; }
+  footer { margin-top: 8mm; padding-top: 2mm; border-top: .5pt solid #d6dcd8; color: #7b8782; font-size: 8pt; }
+</style>
+</head>
+<body>
+<div class="doc">
+
+<h1>Conecte sua conta do Mercado Livre</h1>
+<p class="sub">Em cerca de 15 minutos, no seu computador, sem ninguém junto. Você vai sair com um painel que mostra as promoções que estão acabando e o que vale aderir.</p>
+<p class="fonte">elo-kit · github.com/sebemlabs-agents/elo-kit</p>
+
+<div class="promessa">
+  <h3>Antes de tudo: o que isto nunca faz</h3>
+  <ul>
+    <li><strong>Não altera nada na sua loja.</strong> Não muda preço, estoque, anúncio nem pedido.</li>
+    <li><strong>Não adere a promoção</strong>, não responde pergunta de cliente, não envia mensagem.</li>
+    <li><strong>A sua senha de acesso fica no seu computador.</strong> Não existe servidor nosso guardando nada da sua conta.</li>
+  </ul>
+  <p style="margin:3mm 0 0" class="nota">Isso não é promessa de texto: o programa recusa qualquer tentativa de alteração <em>antes</em> de a chamada sair do seu computador. E você pode desligar o acesso quando quiser — está explicado no fim.</p>
+</div>
+
+<h2>Antes de começar — três coisas</h2>
+<ol>
+  <li><strong>Python instalado.</strong> Abra o Terminal (Mac) ou o Prompt de Comando (Windows), digite <code>python3 --version</code> e dê Enter. Se aparecer um número 3.8 ou maior, está pronto. Se disser que não encontrou, instale em <code>python.org/downloads</code> — no Windows, <strong>marque a caixa "Add to PATH"</strong> durante a instalação.</li>
+  <li><strong>O login da conta administradora</strong> do Mercado Livre — aquela que enxerga o financeiro da loja. Conta de operador ou de colaborador não funciona: o próprio Mercado Livre recusa.</li>
+  <li><strong>Uma pasta nova</strong> no seu computador, só para isto. Pode se chamar <code>elo-meli</code> e ficar em Documentos. <strong>Não coloque dentro do Dropbox, do iCloud, do Google Drive nem do OneDrive</strong> — esses serviços copiam tudo para a nuvem, e a chave da sua conta não pode ir junto. O programa verifica isso e para, se for o caso.</li>
+</ol>
+
+<div class="passo"><span class="n">1</span><span class="t">Instalar o pacote</span></div>
+<p>No Terminal, cole uma linha de cada vez e dê Enter:</p>
+<pre>claude plugin marketplace add sebemlabs-agents/elo-kit
+claude plugin install elo-kit@elo-kit</pre>
+<div class="ok"><strong>Deu certo quando:</strong> aparecer <em>"Successfully added marketplace"</em> e depois <em>"Successfully installed plugin"</em>.</div>
+<p class="nota">Se você usa o Codex em vez do Claude, os comandos são <code>codex plugin marketplace add sebemlabs-agents/elo-kit</code> e <code>codex plugin add elo-kit@elo-kit</code>.</p>
+
+<div class="passo"><span class="n">2</span><span class="t">Conectar a pasta</span></div>
+<p>Abra o Claude e conecte a pasta que você criou no passo anterior. É ali que tudo vai morar: os arquivos, o painel e a chave de acesso.</p>
+
+<div class="passo"><span class="n">3</span><span class="t">Pedir a conexão</span></div>
+<p>Escreva para o Claude, com estas palavras ou parecidas:</p>
+<pre>conecta minha conta do Mercado Livre</pre>
+<p><strong>A partir daqui ele conduz.</strong> Vai te levar a criar um aplicativo no site de desenvolvedores do Mercado Livre, pedir que você copie dois códigos para um arquivo da pasta, e cuidar do resto. Siga o que ele pedir, um passo de cada vez, e <strong>confirme cada etapa antes de seguir</strong>.</p>
+
+<div class="calma">
+  <p><strong>O momento que assusta — e é normal.</strong></p>
+  <p style="margin:0">Na hora de autorizar, você vai colar um endereço no navegador, fazer login no Mercado Livre e clicar em autorizar. Aí <strong>a página vai dar erro</strong>, dizendo que não conseguiu abrir o endereço.</p>
+  <p style="margin:2mm 0 0"><strong>Isso é esperado e está certo.</strong> O endereço não existe de propósito — é assim que o código de autorização fica só na barra do seu navegador, sem passar por servidor de ninguém. É só copiar o endereço inteiro da barra e colar onde o Claude pedir.</p>
+</div>
+
+<h2>Duas regras enquanto você faz</h2>
+<ul>
+  <li><strong>Nunca cole no chat</strong> o App ID, a chave secreta, nem o endereço de retorno. Esses valores vão direto no arquivo da pasta, que você mesmo abre e preenche. O Claude foi feito para não pedir nem ler esses valores — se por algum motivo você colar, troque a chave secreta no site do Mercado Livre depois.</li>
+  <li><strong>Confirme que é a sua loja.</strong> Ao final, o Claude mostra o apelido e o número da conta conectada. Olhe e confirme antes de seguir.</li>
+</ul>
+
+<h2>Se travar</h2>
+<p class="nota">Cole a mensagem de erro no Claude — ele tem a tabela de problemas e sabe o que fazer. Estes são os cinco casos mais comuns:</p>
+<table>
+  <thead><tr><th style="width:42%">O que você vê</th><th>O que fazer</th></tr></thead>
+  <tbody>
+    <tr><td>"a pasta está dentro de um serviço de sincronização"</td><td>Crie a pasta em outro lugar, fora do Dropbox, iCloud, Drive ou OneDrive, e recomece dali. Não tente contornar — é a sua chave de acesso que está em jogo.</td></tr>
+    <tr><td>Alguma coisa sobre <code>redirect_uri</code> ou <em>"client callback"</em></td><td>O endereço cadastrado no Mercado Livre precisa ser <strong>idêntico</strong> ao que está no arquivo da pasta. Compare letra por letra, inclusive a barra no final.</td></tr>
+    <tr><td><code>invalid_operator_user_id</code></td><td>Você autorizou com uma conta de operador. Refaça com a conta administradora da loja.</td></tr>
+    <tr><td>Erro falando de permissão, ou o número <code>403</code></td><td>Falta marcar uma permissão no aplicativo que você criou. Peça ao Claude para revisar as permissões com você.</td></tr>
+    <tr><td>Todas as consultas falham, mesmo com tudo certo</td><td>O endereço <code>api.mercadolibre.com</code> precisa estar liberado nas configurações do Claude. Se a sua conta é de empresa, quem libera é o administrador dela.</td></tr>
+  </tbody>
+</table>
+<p class="nota">Se nada disso resolver, pare e chame. Não fique tentando variações — quase sempre é um detalhe de um caractere.</p>
+
+<h2>Como saber que deu certo</h2>
+<p>No fim, o Claude mostra um resumo com:</p>
+<ul>
+  <li>o <strong>apelido e o número</strong> da loja conectada;</li>
+  <li>até quando o acesso vale, e se ele se renova sozinho;</li>
+  <li>a pasta onde tudo ficou;</li>
+  <li>o que o pacote nunca faz;</li>
+  <li><strong>onde desligar</strong> o acesso.</li>
+</ul>
+<div class="ok"><strong>Teste final:</strong> peça <em>"quais promoções estão acabando?"</em>. Se vierem os nomes das promoções da sua loja, está funcionando.</div>
+
+<h2>No dia seguinte</h2>
+<p>Experimente perguntar, em português normal:</p>
+<ul>
+  <li><em>"quais promoções terminam nos próximos 7 dias?"</em></li>
+  <li><em>"em quais promoções meus produtos mais vendidos já estão, e em quais não?"</em></li>
+  <li><em>"quanto o Mercado Livre me deve e quando libera?"</em></li>
+  <li><em>"atualiza o painel"</em></li>
+</ul>
+<p><strong>A decisão continua sendo sua.</strong> O pacote mostra o número e sugere a prioridade; aderir ou não a uma promoção você faz no painel do Mercado Livre, como sempre fez. E margem depende do custo dos seus produtos, que o Mercado Livre não conhece — se quiser ver margem, vai precisar informar seus custos.</p>
+
+<h2>Como desligar</h2>
+<p>A qualquer momento, no site de desenvolvedores do Mercado Livre, em <strong>Minhas aplicações</strong>, você abre o aplicativo que criou e revoga a permissão. O acesso para na hora.</p>
+<p>No seu computador, basta apagar a pasta. Não fica nada em lugar nenhum além dela.</p>
+
+<footer>
+  elo-kit · guia do participante · Marciano Chula / Elo · github.com/sebemlabs-agents/elo-kit
+</footer>
+
+</div>
+</body>
+</html>

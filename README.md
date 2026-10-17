@@ -73,6 +73,17 @@ Mais skills entram pelo mesmo caminho: cada uma grava um arquivo no formato do
 
 Nenhuma dependência é instalada: os scripts são Python puro.
 
+## Guias em PDF
+
+- **[Guia do participante](./docs/playbook-participante.html)** — para quem vai conectar
+  sozinho, de forma assíncrona: pré-requisitos, os três passos, o que fazer quando trava e
+  como desligar depois.
+- **[Playbook de condução](./docs/playbook-conexao.html)** — para quem acompanha alguém
+  conectando pela primeira vez: onde observar, onde ficar calado, o que cronometrar e a ficha
+  de observação.
+
+Os dois geram PDF com `Google Chrome --headless --print-to-pdf`.
+
 ## Se algo der errado
 
 A skill traz a tabela de problemas com os erros reais e o que fazer em cada um —
