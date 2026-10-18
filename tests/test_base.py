@@ -14,6 +14,7 @@ sys.path.insert(0, str(RAIZ / "scripts"))
 
 import contrato  # noqa: E402
 import meli  # noqa: E402
+import criativos  # noqa: E402
 import painel  # noqa: E402
 import pasta as pasta_mod  # noqa: E402
 
@@ -166,11 +167,11 @@ def test_fonte_invalida_e_recusada(tmp_path):
         )
 
 
-def test_conta_sem_id_e_recusada(tmp_path):
+def test_conta_sem_id_e_recusada_quando_le_a_conta(tmp_path):
     with pytest.raises(contrato.ContratoInvalido, match="conta"):
         contrato.gravar(
             "elo-promocoes", {"apelido": "X"}, PERIODO, resumo={}, itens=[],
-            pasta=tmp_path,
+            fonte="api", pasta=tmp_path,
         )
 
 
@@ -198,6 +199,57 @@ def test_carregar_todos_ignora_versao_desconhecida(tmp_path):
     )
     achados = contrato.carregar_todos(tmp_path)
     assert [d["skill"] for d in achados] == ["elo-caixa"]
+
+
+def test_skill_local_nao_precisa_de_conta(tmp_path):
+    """Skill que nao le a conta (conteudo de produto) nao tem conta pra nomear."""
+    dado = contrato.gravar(
+        "elo-criativos", None, None, resumo={"produtos": 1},
+        itens=[{"titulo": "Serra circular"}], fonte="local", pasta=tmp_path,
+    )
+    assert dado["fonte"] == "local"
+    assert dado["conta"]["id"] is None
+
+
+def test_fonte_api_continua_exigindo_conta(tmp_path):
+    with pytest.raises(contrato.ContratoInvalido, match="conta"):
+        contrato.gravar(
+            "elo-promocoes", {"apelido": "X"}, PERIODO, resumo={}, itens=[],
+            fonte="api", pasta=tmp_path,
+        )
+
+
+# ----------------------------------------------------------------- criativos
+
+def test_criativos_recusa_produto_sem_nome():
+    with pytest.raises(ValueError, match="produto"):
+        criativos.preparar([{"titulo": "Serra circular"}])
+
+
+def test_criativos_recusa_lista_vazia():
+    with pytest.raises(ValueError, match="vazia"):
+        criativos.preparar([])
+
+
+def test_criativos_nao_inventa_campo_ausente():
+    itens, avisos = criativos.preparar([{"produto": "Serra circular"}])
+    assert itens[0]["titulo"] is None
+    assert itens[0]["beneficios"] == []
+    assert any("sem titulo" in a or "sem título" in a for a in avisos)
+
+
+def test_criativos_preserva_o_que_foi_escrito():
+    itens, _ = criativos.preparar([{
+        "produto": "Assador 70kg",
+        "titulo": "Assador Giratório Industrial 70kg Inox 127/220v",
+        "beneficios": ["Assa 12 frangos de uma vez"],
+        "objecoes": [{"duvida": "Cabe na cozinha?", "resposta": "Ocupa 90x60cm"}],
+        "specs": {"capacidade": "70 kg"},
+    }])
+    i = itens[0]
+    assert i["titulo"].startswith("Assador Giratório")
+    assert i["objecoes"][0]["duvida"] == "Cabe na cozinha?"
+    assert i["specs"]["capacidade"] == "70 kg"
 
 
 # -------------------------------------------------------------------- painel

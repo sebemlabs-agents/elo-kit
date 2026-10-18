@@ -18,7 +18,10 @@ from pathlib import Path
 
 BASE = Path(__file__).resolve().parent
 CONTRATO = "1"
-FONTES = ("api", "demo")
+# api  = leitura da conta real
+# demo = dados de demonstracao preparados
+# local = produzido aqui, sem ler conta nenhuma (ex.: conteudo de produto)
+FONTES = ("api", "demo", "local")
 
 # Chaves cujo valor e dinheiro. Usadas para recusar valor monetario como texto
 # (o classico "1.234,56" que quebra qualquer soma depois).
@@ -67,7 +70,9 @@ def validar(dado):
         )
 
     conta = dado.get("conta") or {}
-    if not conta.get("id"):
+    if dado["fonte"] == "api" and not conta.get("id"):
+        # So exigimos a conta quando o dado veio dela. Skill que produz conteudo
+        # local nao tem conta para nomear, e inventar uma seria mentira no painel.
         raise ContratoInvalido(
             "falta conta['id']. Pegue com meli.conta_conectada() para a pessoa poder "
             "confirmar que e a loja certa."
@@ -108,13 +113,15 @@ def validar(dado):
 
 def montar(skill, conta, periodo, resumo, itens, faltando=None, lacunas=None,
            avisos=None, fonte="api", paginacao=None, moeda="BRL"):
-    """Monta o envelope e valida, sem tocar em disco."""
+    """Monta o envelope e valida, sem tocar em disco.
+
+    conta pode vir None quando fonte='local' — ver CONTRATO.md secao 2."""
     dado = {
         "contrato": CONTRATO,
         "skill": skill,
         "gerado_em": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
         "fonte": fonte,
-        "conta": conta,
+        "conta": conta or {"id": None, "apelido": None, "site": None},
         "periodo": periodo if periodo else {"de": None, "ate": None},
         "moeda": moeda,
         "resumo": resumo or {},

@@ -78,8 +78,8 @@ mesmo vazios.
 | `contrato` | sim | versão deste contrato, sempre string. O painel recusa versão que não conhece em vez de desenhar errado. |
 | `skill` | sim | nome da skill, igual ao nome do arquivo sem extensão. |
 | `gerado_em` | sim | ISO 8601 **com fuso** (`-03:00`). O painel mostra a idade do dado; dado de ontem apresentado como de hoje é decisão errada. |
-| `fonte` | sim | `"api"` ou `"demo"`. Ver seção 4. |
-| `conta` | sim | `id` e `apelido` vêm da própria API. É o que permite a pessoa confirmar que é a loja certa. |
+| `fonte` | sim | `"api"`, `"demo"` ou `"local"`. Ver seção 4. |
+| `conta` | quando `fonte` é `"api"` | `id` e `apelido` vêm da própria API. É o que permite a pessoa confirmar que é a loja certa. Com `fonte: "local"` não existe conta para nomear, e os campos vêm `null`. |
 | `periodo` | sim | datas `AAAA-MM-DD`. Quando a skill não tem recorte de período, use `null` nos dois. |
 | `moeda` | sim quando houver valor | `"BRL"`. |
 | `resumo` | sim | totais do período, pares chave-valor rasos. Ver seção 3. |
@@ -125,7 +125,16 @@ America/São Paulo é responsabilidade do painel.
 
 ---
 
-## 4. Modo demonstração
+## 4. De onde o dado veio
+
+O campo `fonte` diz isso, e tem três valores:
+
+- **`"api"`** — leitura da conta real. Exige `conta.id`.
+- **`"demo"`** — dados de demonstração preparados, para quem não conseguiu conectar.
+- **`"local"`** — produzido na própria máquina, sem ler conta nenhuma. É o caso de uma skill
+  de conteúdo de produto: não há conta para nomear, e inventar uma seria mentira no painel.
+
+### Modo demonstração
 
 Quando a skill roda com dados preparados em vez da conta real, `fonte` vale `"demo"`.
 
