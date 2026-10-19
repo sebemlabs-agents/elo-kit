@@ -23,6 +23,7 @@ import promocoes  # noqa: E402
 import caixa  # noqa: E402
 import spec  # noqa: E402
 import planilha  # noqa: E402
+import margem  # noqa: E402
 
 
 CONTA = {"id": 123456789, "apelido": "LOJA EXEMPLO", "site": "MLB"}
@@ -1067,3 +1068,122 @@ def test_painel_marca_dado_de_planilha_e_a_idade_do_arquivo(tmp_path):
     html = painel.render(contrato.carregar_todos(tmp_path))
     assert "de planilha" in html
     assert "arquivo de" in html
+
+
+# ----------------------------------------------------------------- elo-margem
+
+def _linha(**kw):
+    base = {"sku": "A1", "preco": 100.0, "custo": 40.0, "taxa": 12.0,
+            "frete": 15.0, "imposto": 8.0}
+    base.update(kw)
+    return base
+
+
+def test_margem_calcula_o_que_sobra():
+    itens, *_ = margem.calcular([_linha()])
+    assert itens[0]["margem"] == 25.0
+    assert itens[0]["margem_pct"] == 25.0
+
+
+def test_margem_negativa_e_calculada_e_avisada():
+    itens, _, _, avisos, resumo = margem.calcular([_linha(custo=90.0)])
+    assert itens[0]["margem"] == -25.0
+    assert resumo["anuncios_no_prejuizo"] == 1
+    assert any("NEGATIVA" in a for a in avisos)
+
+
+def test_margem_custo_ausente_nao_vira_zero():
+    itens, faltando, lacunas, _, resumo = margem.calcular([_linha(custo=None)])
+    assert itens[0]["margem"] is None
+    assert itens[0]["sem_margem_porque"] == ["custo"]
+    assert "custo" in faltando and "custo" in lacunas
+    assert resumo["com_margem_calculada"] == 0
+
+
+def test_margem_custo_vazio_como_texto_tambem_nao_vira_zero():
+    itens, *_ = margem.calcular([_linha(custo="")])
+    assert itens[0]["margem"] is None
+
+
+def test_margem_zero_declarado_e_diferente_de_ausente():
+    itens, *_ = margem.calcular([_linha(frete=0)])
+    assert itens[0]["margem"] == 40.0
+    assert itens[0]["sem_margem_porque"] == []
+
+
+def test_margem_aceita_percentual_no_lugar_do_valor():
+    linha = _linha(taxa=None, imposto=None)
+    linha["taxa_pct"] = 12.0
+    linha["imposto_pct"] = 8.0
+    itens, *_ = margem.calcular([linha])
+    assert itens[0]["taxa"] == 12.0
+    assert itens[0]["margem"] == 25.0
+    assert itens[0]["calculado_por_percentual"] == ["imposto", "taxa"]
+
+
+def test_margem_valor_direto_ganha_do_percentual():
+    linha = _linha(taxa=20.0)
+    linha["taxa_pct"] = 50.0
+    itens, *_ = margem.calcular([linha])
+    assert itens[0]["taxa"] == 20.0
+
+
+def test_margem_lista_todos_os_componentes_que_faltaram():
+    itens, *_ = margem.calcular([_linha(custo=None, frete=None)])
+    assert itens[0]["sem_margem_porque"] == ["custo", "frete"]
+
+
+def test_margem_lacuna_diz_em_quantos_anuncios_faltou():
+    _, _, lacunas, _, _ = margem.calcular([_linha(custo=None), _linha(), _linha(custo=None)])
+    assert "2 de 3" in lacunas["custo"]
+
+
+def test_margem_lacuna_do_frete_ensina_a_escrever_zero():
+    _, _, lacunas, _, _ = margem.calcular([_linha(frete=None)])
+    assert "escreva 0" in lacunas["frete"]
+
+
+def test_margem_sem_identificacao_usa_a_posicao_e_avisa():
+    itens, _, _, avisos, _ = margem.calcular([{"preco": 10.0, "custo": 1.0,
+                                               "taxa": 1.0, "frete": 1.0, "imposto": 1.0}])
+    assert itens[0]["anuncio"] == "linha 1"
+    assert any("sem mlb" in a for a in avisos)
+
+
+def test_margem_prefere_mlb_depois_sku_depois_produto():
+    itens, *_ = margem.calcular([_linha(mlb="MLB1", produto="Chapa")])
+    assert itens[0]["anuncio"] == "MLB1"
+
+
+def test_margem_media_e_ponderada_pelo_preco():
+    itens, _, _, _, resumo = margem.calcular([
+        _linha(preco=100.0, custo=40.0, taxa=10.0, frete=0, imposto=0),
+        _linha(preco=900.0, custo=400.0, taxa=90.0, frete=0, imposto=0)])
+    # 50 + 410 sobre 1000 = 46%
+    assert resumo["margem_total"] == 460.0
+    assert resumo["margem_media_pct"] == 46.0
+
+
+def test_margem_mistura_calculada_e_nao_calculada():
+    _, _, _, avisos, resumo = margem.calcular([_linha(), _linha(custo=None)])
+    assert resumo["anuncios"] == 2 and resumo["com_margem_calculada"] == 1
+    assert any("1 de 2" in a for a in avisos)
+
+
+def test_margem_recusa_entrada_que_nao_e_lista():
+    with pytest.raises(ValueError):
+        margem.calcular({"sku": "A"})
+
+
+def test_margem_recusa_lista_vazia():
+    with pytest.raises(ValueError):
+        margem.calcular([])
+
+
+def test_margem_passa_no_contrato_como_export(tmp_path):
+    itens, faltando, lacunas, avisos, resumo = margem.calcular([_linha()])
+    d = contrato.gravar("elo-margem", conta=None, periodo=None, resumo=resumo,
+                        itens=itens, faltando=faltando, lacunas=lacunas,
+                        avisos=avisos, fonte="export",
+                        capturado_em="2026-10-12T09:00:00-03:00", pasta=tmp_path)
+    assert d["fonte"] == "export" and d["capturado_em"]

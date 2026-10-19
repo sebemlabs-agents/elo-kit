@@ -45,3 +45,7 @@ Este arquivo existe para contar o que mudou, não para controlar entrega.
   custo feito à mão — descreve as colunas e deixa o mapeamento com quem entende a planilha.
   Sem formato obrigatório, sem dependência instalada. O contrato ganha a origem `export`, e
   com ela `capturado_em`: dado de arquivo tem duas idades, e o painel mostra as duas.
+- **`elo-margem`**: a dor número um declarada nas mentorias. Preço menos comissão, frete,
+  custo e imposto. Componente ausente não vira zero — a linha fica sem margem e diz qual
+  faltou; zero declarado é diferente de vazio. Média ponderada pelo preço, e os negativos
+  aparecem primeiro.

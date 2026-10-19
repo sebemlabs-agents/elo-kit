@@ -104,6 +104,7 @@ deve?"*, *"atualiza o painel"*.
 | `elo-caixa` | quanto as suas vendas ainda vão liberar, e em que dia cada valor cai |
 | `elo-spec` | o plano para levar o painel para Supabase e Vercel, com a segurança ligada |
 | `elo-planilha` | lê qualquer CSV ou XLSX seu e cruza com o painel — sem formato obrigatório |
+| `elo-margem` | quanto sobra por anúncio depois de comissão, frete, custo e imposto |
 
 Mais skills entram pelo mesmo caminho: cada uma grava um arquivo no formato do
 [CONTRATO.md](./CONTRATO.md) e aparece como um bloco no painel.
