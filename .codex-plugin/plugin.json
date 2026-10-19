@@ -1,6 +1,6 @@
 {
   "name": "elo-kit",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Lê sua conta do Mercado Livre e monta um painel local — só leitura, nada na sua conta é alterado. Novas skills entram no mesmo pacote e chegam na atualização, sem reinstalar. Hoje: conexão, painel e conteúdo de anúncio (funciona sem conexão).",
   "author": {
     "name": "Elo"
