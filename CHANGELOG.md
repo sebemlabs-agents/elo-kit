@@ -38,3 +38,6 @@ Este arquivo existe para contar o que mudou, não para controlar entrega.
 - **`elo-spec`**: lê o painel local e escreve o plano para subir para Supabase e Vercel, com
   o esquema tirado dos dados reais, segurança de linha ligada e nenhuma política — a tabela
   nasce trancada de propósito.
+- **Correção silenciosa que teria estragado o primeiro teste:** skill nova chega pela
+  atualização, mas o script dela não aparece sozinho na pasta de quem já instalou. As skills
+  agora conferem e copiam de `${CLAUDE_PLUGIN_ROOT}/scripts/` antes do primeiro comando.

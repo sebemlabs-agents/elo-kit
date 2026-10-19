@@ -43,3 +43,11 @@ Se o painel estiver em dados de demonstração, **diga isso na primeira linha.**
 
 Painel vazio não é falha: significa que a conexão existe mas nenhuma skill rodou. Ofereça
 rodar a primeira — normalmente a de promoções, que é a que devolve decisão mais rápido.
+
+## Se faltar script na pasta
+
+O pacote cresce, e a pasta do usuário não se atualiza sozinha. Se alguma skill reclamar que
+o arquivo `.py` não existe, copie todos os scripts de `${CLAUDE_PLUGIN_ROOT}/scripts/` para a
+pasta dele e rode de novo.
+
+**Sem tocar em `credenciais.txt` e `tokens.json`.** Esses são dele, não do pacote.

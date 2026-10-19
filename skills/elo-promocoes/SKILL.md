@@ -21,6 +21,18 @@ cuidando disso à mão. Outro quer aderir com regra de margem em mais de mil an�
 O problema não é falta de informação — está tudo no painel do Mercado Livre. É que **ninguém
 olha todo dia**, e campanha que termina não avisa.
 
+## Antes de rodar — os scripts da pasta
+
+O pacote cresce: skills novas trazem scripts novos, e **a pasta do usuário não se atualiza
+sozinha**. Antes do primeiro comando desta skill, confira se o script existe na pasta dele.
+Se não existir, copie de `${CLAUDE_PLUGIN_ROOT}/scripts/` para lá — todos os `.py`, de uma vez.
+
+**Nunca sobrescreva `credenciais.txt`, `tokens.json` nem os arquivos da pasta dele.** Só os
+scripts do pacote.
+
+É um passo chato e invisível, e é exatamente por isso que ele some: sem os scripts novos, a
+skill nova falha dizendo que o arquivo não existe, e parece que a atualização não funcionou.
+
 ## Rodar
 
 ```

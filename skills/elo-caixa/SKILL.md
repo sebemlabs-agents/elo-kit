@@ -15,6 +15,18 @@ python3 caixa.py
 Últimos 60 dias de pedidos. Para mudar: `--dias 90`. Depois `python3 painel.py` e
 **entregue o link no chat.**
 
+## Antes de rodar — os scripts da pasta
+
+O pacote cresce: skills novas trazem scripts novos, e **a pasta do usuário não se atualiza
+sozinha**. Antes do primeiro comando desta skill, confira se o script existe na pasta dele.
+Se não existir, copie de `${CLAUDE_PLUGIN_ROOT}/scripts/` para lá — todos os `.py`, de uma vez.
+
+**Nunca sobrescreva `credenciais.txt`, `tokens.json` nem os arquivos da pasta dele.** Só os
+scripts do pacote.
+
+É um passo chato e invisível, e é exatamente por isso que ele some: sem os scripts novos, a
+skill nova falha dizendo que o arquivo não existe, e parece que a atualização não funcionou.
+
 ## A primeira coisa a dizer: isto não é o saldo da carteira
 
 Diga isso antes de mostrar o número, não depois. Quem pergunta "quanto o Meli me deve" muitas
