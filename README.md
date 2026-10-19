@@ -59,7 +59,13 @@ Uma pasta nova, só para isto, **fora** de Dropbox, iCloud, Google Drive e OneDr
 verifica isso e para se a pasta sincronizar, porque a sua credencial não pode ir para a nuvem
 sem você saber.
 
-Sugestão: uma pasta chamada `elo-meli` em Documentos. Conecte essa pasta ao Claude.
+Sugestão: uma pasta chamada `elo-meli`.
+
+- **Mac:** em Documentos serve.
+- **Windows:** **não use Documentos** — ela quase sempre está dentro do OneDrive e o pacote
+  recusa. Use `C:\Users\<seu nome>\elo-meli`.
+
+Conecte essa pasta ao Claude.
 
 ### 3. Pedir a conexão
 
@@ -87,7 +93,9 @@ Mais skills entram pelo mesmo caminho: cada uma grava um arquivo no formato do
 
 ## Requisitos
 
-- **Python 3.8 ou mais novo.** No Mac normalmente já vem; confira com `python3 --version`.
+- **Python 3.8 ou mais novo.** No Mac normalmente já vem: confira com `python3 --version`.
+  **No Windows o comando é `py -3`** (`py -3 --version`); se não existir, instale do site
+  oficial marcando **"Add python.exe to PATH"**.
 - **Conta administradora** de vendedor no Mercado Livre. Conta de operador ou colaborador não
   consegue autorizar — o Mercado Livre recusa.
 - Uma pasta sua, fora de serviço de sincronização.

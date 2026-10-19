@@ -50,10 +50,33 @@ Todos os comandos abaixo rodam de dentro dessa pasta.
 
 ## Instalação — siga em ordem, confirmando cada etapa
 
+### 0. Descobrir como o Python se chama nesta máquina
+
+Antes de qualquer outro comando. **No Windows `python3` quase nunca existe** — costuma ser
+`py -3`, e às vezes `python`. Teste nesta ordem e **pare no primeiro que responder 3.8 ou
+mais novo**:
+
+```
+python3 --version
+py -3 --version
+python --version
+```
+
+Daqui em diante, **use sempre o que funcionou**, em todos os comandos desta skill. Neste
+arquivo está escrito `python3`; troque pelo da máquina dele.
+
+Se nenhum responder, ou se vier 3.7 ou anterior, o usuário precisa instalar o Python do site
+oficial — no Windows, marcando **"Add python.exe to PATH"** na primeira tela do instalador.
+Sem isso, nada do pacote roda.
+
 ### 1. Preparar a pasta (e a verificação que mais importa)
 
 Copie para a pasta do usuário todos os arquivos de `scripts/` deste pacote, com os mesmos
 nomes. Depois rode:
+
+**Atenção no Windows:** a pasta `Documentos` costuma estar **dentro do OneDrive**, e o passo
+abaixo vai recusar — corretamente. Peça uma pasta na raiz do perfil, como
+`C:\Users\<nome>\elo-meli`, antes de copiar qualquer coisa.
 
 ```
 python3 pasta.py
@@ -76,12 +99,15 @@ python3 -m py_compile *.py
 ### 2. Conferir o acesso à API
 
 ```
-curl -s -D - -o /dev/null https://api.mercadolibre.com/ | grep -ci x-request-id
+python3 -c "import http.client as h; c=h.HTTPSConnection('api.mercadolibre.com',timeout=15); c.request('GET','/sites/MLB'); print('ok', c.getresponse().status)"
 ```
 
-Se sair `1` ou mais, a resposta veio do próprio Mercado Livre e o caminho está aberto — o
-código HTTP não importa aqui (sem login o Meli responde 404 ou 403, e isso é normal). Se sair
-`0` ou der erro de rede, o domínio `api.mercadolibre.com` precisa ser liberado nas
+Usa o mesmo caminho de rede que os scripts vão usar, e funciona igual no Mac e no Windows —
+`curl` e `grep` não existem no Windows por padrão.
+
+**Qualquer `ok` serve, inclusive `ok 403`.** Sem login o Meli responde 403, e isso prova que
+a resposta veio dele: o caminho está aberto. O que reprova é erro de rede, de DNS ou de
+certificado — aí o domínio `api.mercadolibre.com` precisa ser liberado nas
 configurações do Claude (Configurações → Capabilities → domínios permitidos). **Em conta de
 empresa, quem libera é o administrador** — então isso pode não ser resolvível na hora. Se for
 o caso, pare, explique, e ofereça o modo demonstração (etapa 7).

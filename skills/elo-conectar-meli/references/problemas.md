@@ -43,3 +43,20 @@ registrado, nem é preciso adicionar: o pacote aparece direto na aba **Descobrir
 
 Para começar do zero: `claude plugin marketplace remove elo-kit` desregistra o catálogo (e
 desinstala os plugins vindos dele).
+
+
+## Windows: `python3` não é reconhecido
+
+No Windows o comando quase sempre é **`py -3`**, não `python3`. Digitar `python3` costuma
+abrir a Loja da Microsoft em vez de rodar o Python. Teste `py -3 --version` e, se responder
+3.8 ou mais novo, use `py -3` em todos os comandos.
+
+Se nem `py -3` nem `python` responderem, instale do site oficial marcando **"Add python.exe
+to PATH"** na primeira tela.
+
+## Windows: a pasta Documentos é recusada
+
+No Windows, `Documentos` normalmente está **dentro do OneDrive**, e o pacote recusa — como
+deve. Use uma pasta na raiz do perfil, por exemplo `C:\Users\<nome>\elo-meli`.
+
+Não contorne a verificação: o token da conta não pode ir para a nuvem sem o dono saber.
