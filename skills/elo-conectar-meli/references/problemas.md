@@ -31,3 +31,15 @@ tente adivinhar — errar o diagnóstico custa mais que admitir.
 
 **`HTTP 400` em um anúncio durante uma coleta.** Anúncio encerrado não responde consulta de
 promoção. A skill pula, conta quantos pulou e segue.
+
+## "Falha ao adicionar marketplace", ao colar o endereço do repositório
+
+A máquina já tem esse catálogo registrado por outro formato de endereço — normalmente a
+forma curta `sebemlabs-agents/elo-kit`, gravada numa instalação anterior pelo terminal. O
+Claude trata a URL inteira como fonte diferente e recusa, em vez de sobrescrever.
+
+**O que fazer:** cole a forma curta `sebemlabs-agents/elo-kit`. Se o catálogo já estiver
+registrado, nem é preciso adicionar: o pacote aparece direto na aba **Descobrir**.
+
+Para começar do zero: `claude plugin marketplace remove elo-kit` desregistra o catálogo (e
+desinstala os plugins vindos dele).

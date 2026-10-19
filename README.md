@@ -23,8 +23,12 @@ leitura **antes de ela sair do seu computador**.
 
 1. **Configurações → Plugins**
 2. Botão **+ Adicionar**, no canto superior direito → **Adicionar marketplace**
-3. Escolher **Adicionar de um repositório** e colar:
-   `https://github.com/sebemlabs-agents/elo-kit`
+3. Escolher **Adicionar de um repositório** e colar, nesta forma curta:
+   `sebemlabs-agents/elo-kit`
+
+   > Use a forma curta, não a URL inteira. Se a máquina já tiver esse catálogo
+   > registrado pela forma curta, colar a URL completa é recusado como fonte
+   > diferente, com a mensagem `Falha ao adicionar marketplace`.
 4. O `elo-kit` passa a aparecer na lista. Abrir e instalar, escolhendo o escopo
    (**para você** serve: vale em qualquer pasta desta máquina).
 
