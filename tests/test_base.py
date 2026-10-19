@@ -445,3 +445,40 @@ def test_preparar_nunca_sobrescreve_credenciais_ja_preenchidas(tmp_path):
     (tmp_path / "credenciais.txt").write_text("MELI_APP_ID=123\n", encoding="utf-8")
     pasta_mod.preparar(tmp_path, nome="Outra Loja")
     assert (tmp_path / "credenciais.txt").read_text(encoding="utf-8") == "MELI_APP_ID=123\n"
+
+
+# -------------------------------------------------- dinheiro legivel no painel
+
+def test_numero_poe_separador_de_milhar():
+    assert painel._numero(1234567.89) == "1.234.567,89"
+    assert painel._numero(999.5) == "999,50"
+
+
+def test_dinheiro_sai_com_simbolo_e_duas_casas():
+    assert painel._valor(48213.9, "a_receber") == "R$ 48.213,90"
+    assert painel._valor(3120.44, "valor") == "R$ 3.120,44"
+
+
+def test_dinheiro_negativo_poe_o_sinal_antes_do_simbolo():
+    assert painel._valor(-50.0, "saldo") == "-R$ 50,00"
+
+
+def test_inteiro_de_dinheiro_tambem_vira_reais():
+    assert painel._valor(1200, "total") == "R$ 1.200,00"
+
+
+def test_percentual_nao_vira_dinheiro():
+    assert painel._valor(12.5, "desconto_minimo") == "12,5%"
+    assert painel._valor(15.0, "minimo") == "15%"
+
+
+def test_numero_comum_fica_sem_simbolo():
+    assert painel._valor(37, "anuncios_afetados") == "37"
+
+
+def test_ausente_continua_dizendo_que_nao_veio():
+    assert "não veio" in painel._valor(None, "custo")
+
+
+def test_zero_de_dinheiro_nao_vira_ausente():
+    assert painel._valor(0.0, "valor") == "R$ 0,00"

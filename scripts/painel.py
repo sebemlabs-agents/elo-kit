@@ -58,13 +58,59 @@ def idade(gerado_em):
     return "há %d dia(s)" % int(horas // 24)
 
 
-def _valor(v):
+MARCAS_DE_DINHEIRO = (
+    "valor", "preco", "custo", "imposto", "margem", "receita", "total", "taxa",
+    "liquido", "bruto", "frete", "repasse", "desconto", "ticket", "receber",
+    "liberado", "pago", "saldo",
+)
+
+MARCAS_DE_PERCENTUAL = ("percentual", "minimo", "maximo", "aliquota", "taxa_percentual")
+
+
+def _e_dinheiro(chave):
+    c = str(chave or "").lower()
+    return any(m in c for m in MARCAS_DE_DINHEIRO)
+
+
+def _e_percentual(chave):
+    c = str(chave or "").lower()
+    return any(m in c for m in MARCAS_DE_PERCENTUAL) or c.endswith("_pct")
+
+
+def _numero(v, casas=2):
+    """123456.7 -> 123.456,70 — separador de milhar, virgula decimal."""
+    inteiro, _, decimal = ("%.*f" % (casas, v)).partition(".")
+    sinal = "-" if inteiro.startswith("-") else ""
+    inteiro = inteiro.lstrip("-")
+    grupos = []
+    while len(inteiro) > 3:
+        grupos.insert(0, inteiro[-3:])
+        inteiro = inteiro[:-3]
+    grupos.insert(0, inteiro)
+    junto = ".".join(grupos)
+    return "%s%s,%s" % (sinal, junto, decimal) if decimal else "%s%s" % (sinal, junto)
+
+
+def _reais(v):
+    """O sinal vem antes do simbolo: -R$ 50,00, nunca R$ -50,00."""
+    texto = _numero(abs(v))
+    return "-R$ %s" % texto if v < 0 else "R$ %s" % texto
+
+
+def _valor(v, chave=None):
     if v is None:
         return '<span class="vazio">não veio</span>'
     if isinstance(v, bool):
         return "sim" if v else "não"
     if isinstance(v, float):
-        return _e(("%.2f" % v).replace(".", ","))
+        if _e_percentual(chave):
+            texto = _numero(v, 2).rstrip("0").rstrip(",")
+            return _e("%s%%" % texto)
+        if _e_dinheiro(chave):
+            return _e(_reais(v))
+        return _e(_numero(v))
+    if isinstance(v, int) and _e_dinheiro(chave):
+        return _e(_reais(float(v)))
     if isinstance(v, (list, tuple)):
         return _e(", ".join(str(x) for x in v))
     if isinstance(v, dict):
@@ -77,7 +123,7 @@ def bloco_resumo(resumo):
         return ""
     celulas = "".join(
         '<div class="kpi"><span class="rotulo">%s</span><strong>%s</strong></div>'
-        % (_e(str(k).replace("_", " ")), _valor(v))
+        % (_e(str(k).replace("_", " ")), _valor(v, k))
         for k, v in resumo.items()
     )
     return '<div class="kpis">%s</div>' % celulas
@@ -97,7 +143,7 @@ def bloco_itens(itens):
     cabecalho = "".join("<th>%s</th>" % _e(c.replace("_", " ")) for c in colunas)
     linhas = []
     for item in itens:
-        celulas = "".join("<td>%s</td>" % _valor(item.get(c)) for c in colunas)
+        celulas = "".join("<td>%s</td>" % _valor(item.get(c), c) for c in colunas)
         linhas.append("<tr>%s</tr>" % celulas)
     return ('<div class="tabela"><table><thead><tr>%s</tr></thead><tbody>%s</tbody>'
             "</table></div>" % (cabecalho, "".join(linhas)))
@@ -159,53 +205,99 @@ def bloco_skill(dado):
 
 
 ESTILO = """
-:root{--papel:#f4f6f5;--carta:#fff;--tinta:#131a18;--tinta2:#4b5853;--linha:#d6dcd8;
---aco:#1f5f73;--ambar:#a8640c;--ambar-fundo:#f9ecd6;--vazio:#8d9793}
+/* Identidade cosmic: neutros predominantes, indigo e violeta pontuais,
+   superficies suaves. O universo fica so na entrada, nunca sobre dados. */
+:root{
+  --papel:#f6f6f8;--carta:#fff;--tinta:#202024;--tinta2:#686872;--tinta3:#8b8b96;
+  --linha:#e1e1e7;--campo:#f8f8fa;--suave:#ededf3;--brilho:#818cf830;--anel:#b8b9d0;
+  --acento:#27272d;--sobre-acento:#fff;--indigo:#4b53a4;--indigo-forte:#3c4390;
+  --indigo-suave:#eceefa;--violeta:#6d4fc4;--violeta-suave:#f2eefc;
+  --sombra:0 24px 70px #1515250a,0 2px 5px #15152504;
+  --r-carta:20px;--r-suave:14px;--r-controle:11px;
+}
+@media (prefers-color-scheme:dark){:root{
+  --papel:#0d0d10;--carta:#17171c;--tinta:#f4f4f7;--tinta2:#a4a4b0;--tinta3:#7c7c8a;
+  --linha:#32323b;--campo:#111115;--suave:#25252e;--brilho:#6366f138;--anel:#424254;
+  --acento:#f0f0f5;--sobre-acento:#15151b;--indigo:#818cf8;--indigo-forte:#a5adfb;
+  --indigo-suave:#1b1c2e;--violeta:#a78bfa;--violeta-suave:#231c38;
+  --sombra:0 24px 80px #0004,0 1px 0 #ffffff07 inset;
+  color-scheme:dark;
+}}
 *{box-sizing:border-box}
 body{margin:0;background:var(--papel);color:var(--tinta);
-font:16px/1.5 -apple-system,"Segoe UI",system-ui,sans-serif}
-.pagina{max-width:1000px;margin:0 auto;padding:28px 18px 64px}
-h1{font-size:1.6rem;margin:0}
-.cabeca{border-bottom:1px solid var(--linha);padding-bottom:16px;margin-bottom:8px}
-.cabeca p{margin:6px 0 0;color:var(--tinta2);font-size:.92rem}
-.so-leitura{display:inline-block;margin-top:10px;padding:4px 9px;border-radius:4px;
-background:#dceaef;color:#15485a;font-size:.78rem}
-.bloco{background:var(--carta);border:1px solid var(--linha);border-radius:8px;
-padding:18px 20px;margin-top:18px}
-.bloco.em-demo{border-color:var(--ambar);background:var(--ambar-fundo)}
-.bloco h2{font-size:1.12rem;margin:0}
-.demo{font-size:.72rem;background:var(--ambar);color:#fff;padding:2px 8px;
-border-radius:999px;vertical-align:middle;margin-left:6px}
-.meta{margin:3px 0 0;color:var(--tinta2);font-size:.82rem}
-.kpis{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0}
-.kpi{background:var(--papel);border:1px solid var(--linha);border-radius:6px;
-padding:9px 13px;min-width:120px}
-.bloco.em-demo .kpi{background:#fff}
-.kpi .rotulo{display:block;font-size:.74rem;color:var(--tinta2)}
-.kpi strong{font-size:1.2rem;font-variant-numeric:tabular-nums}
-.lacunas{border-left:3px solid var(--ambar);background:var(--papel);
-padding:10px 14px;margin:12px 0;border-radius:0 5px 5px 0}
-.bloco.em-demo .lacunas{background:#fff}
-.lacunas p{margin:0 0 4px;font-size:.8rem;text-transform:uppercase;
-letter-spacing:.05em;color:var(--ambar)}
-.lacunas ul{margin:0;padding-left:1.1em;font-size:.9rem;color:var(--tinta2)}
-.tabela{overflow-x:auto;border:1px solid var(--linha);border-radius:6px;margin-top:12px}
+font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+font-optical-sizing:auto;-webkit-font-smoothing:antialiased}
+.pagina{max-width:1040px;margin:0 auto;padding:0 20px 96px}
+
+/* entrada */
+.cabeca{position:relative;isolation:isolate;overflow:hidden;
+padding:56px 0 28px;border-bottom:1px solid var(--linha);margin-bottom:4px}
+.cabeca::before{content:"";position:absolute;z-index:-1;top:-220px;right:-180px;
+width:520px;height:520px;border-radius:50%;
+background:radial-gradient(ellipse,var(--brilho),transparent 65%);pointer-events:none}
+h1{font-size:clamp(1.9rem,4.4vw,2.8rem);font-weight:550;letter-spacing:-.045em;
+line-height:1.05;margin:0}
+.cabeca p{margin:10px 0 0;color:var(--tinta2);font-size:.95rem}
+.so-leitura{display:inline-block;margin-top:18px;padding:6px 14px;border-radius:30px;
+background:var(--indigo-suave);color:var(--indigo-forte);font-size:.78rem;font-weight:600}
+
+/* blocos */
+.bloco{background:var(--carta);border:1px solid var(--linha);border-radius:var(--r-carta);
+padding:26px 28px;margin-top:18px;box-shadow:var(--sombra)}
+.bloco.em-demo{border-color:transparent;background:var(--violeta-suave);box-shadow:none}
+.bloco h2{font-size:1.2rem;font-weight:600;letter-spacing:-.025em;margin:0}
+.demo{display:inline-block;font-size:.68rem;font-weight:650;letter-spacing:.05em;
+text-transform:uppercase;background:var(--violeta);color:#fff;padding:3px 10px;
+border-radius:30px;vertical-align:middle;margin-left:8px}
+.meta{margin:5px 0 0;color:var(--tinta3);font-size:.82rem}
+
+/* numeros */
+.kpis{display:flex;flex-wrap:wrap;gap:10px;margin:20px 0 0}
+.kpi{background:var(--campo);border:1px solid var(--linha);border-radius:var(--r-suave);
+padding:14px 18px;min-width:140px}
+.bloco.em-demo .kpi{background:var(--carta);border-color:transparent}
+.kpi .rotulo{display:block;font-size:.76rem;color:var(--tinta2);margin-bottom:3px}
+.kpi strong{font-size:1.5rem;font-weight:550;letter-spacing:-.035em;
+font-variant-numeric:tabular-nums;line-height:1.1}
+
+/* o que nao veio */
+.lacunas{background:var(--violeta-suave);padding:16px 20px;margin:18px 0 0;
+border-radius:var(--r-suave)}
+.bloco.em-demo .lacunas{background:var(--carta)}
+.lacunas p{margin:0 0 6px;font-size:.68rem;text-transform:uppercase;font-weight:650;
+letter-spacing:.12em;color:var(--violeta)}
+.lacunas ul{margin:0;padding-left:1.1em;font-size:.89rem;color:var(--tinta2)}
+
+/* tabela */
+.tabela{overflow-x:auto;border:1px solid var(--linha);border-radius:var(--r-suave);
+margin-top:20px}
+.bloco.em-demo .tabela{border-color:transparent;background:var(--carta)}
 table{width:100%;border-collapse:collapse;font-size:.9rem}
-th,td{text-align:left;padding:9px 12px;border-top:1px solid var(--linha);
+th,td{text-align:left;padding:13px 16px;border-top:1px solid var(--linha);
 vertical-align:top}
-thead th{border-top:0;background:var(--papel);font-size:.74rem;text-transform:uppercase;
-letter-spacing:.05em;color:var(--tinta2)}
-.vazio{color:var(--vazio);font-style:italic}
-.nada{color:var(--tinta2);font-size:.9rem;margin:12px 0 0}
-.avisos{margin-top:12px;display:flex;flex-wrap:wrap;gap:6px}
-.avisos span{font-size:.78rem;background:var(--papel);border:1px solid var(--linha);
-border-radius:999px;padding:3px 9px;color:var(--tinta2)}
-.bloco.em-demo .avisos span{background:#fff}
-.vazio-geral{background:var(--carta);border:1px dashed var(--linha);border-radius:8px;
-padding:28px 22px;margin-top:18px;color:var(--tinta2)}
-footer{margin-top:28px;padding-top:14px;border-top:1px solid var(--linha);
-color:var(--vazio);font-size:.8rem}
-@media print{body{background:#fff}.bloco{break-inside:avoid}}
+thead th{border-top:0;font-size:.68rem;text-transform:uppercase;font-weight:650;
+letter-spacing:.12em;color:var(--tinta3);padding-block:15px 9px}
+tbody tr:hover{background:var(--campo)}
+.bloco.em-demo tbody tr:hover{background:transparent}
+.vazio{color:var(--tinta3);font-style:italic}
+.nada{color:var(--tinta2);font-size:.9rem;margin:18px 0 0}
+
+/* avisos */
+.avisos{margin-top:18px;display:flex;flex-wrap:wrap;gap:6px}
+.avisos span{font-size:.75rem;background:var(--suave);border-radius:30px;
+padding:5px 12px;color:var(--tinta2)}
+.bloco.em-demo .avisos span{background:var(--carta)}
+
+.vazio-geral{background:var(--carta);border:1px dashed var(--anel);
+border-radius:var(--r-carta);padding:40px 32px;margin-top:18px;color:var(--tinta2)}
+.vazio-geral b{color:var(--tinta);font-size:1.05rem}
+.vazio-geral p{margin:8px 0 0}
+
+footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--linha);
+color:var(--tinta3);font-size:.82rem}
+footer code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.8rem}
+@media print{body{background:#fff}.cabeca::before{display:none}
+.bloco,.kpi,.tabela{break-inside:avoid}}
 """
 
 
