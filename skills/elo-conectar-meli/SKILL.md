@@ -1,9 +1,15 @@
 ---
 name: elo-conectar-meli
-description: Conecta a conta do Mercado Livre do usuário em somente leitura, na pasta dele, e deixa o pacote Elo pronto para usar. Conduz a criação do aplicativo no DevCenter, a autorização OAuth sem expor segredo no chat, a confirmação da conta e o primeiro painel. Use sempre que o usuário pedir para conectar, reconectar, instalar ou configurar o Mercado Livre, o pacote Elo ou qualquer skill elo-*, ou quando outra skill do pacote falhar por falta de conexão — mesmo que ele não diga "conectar".
+description: Conecta a conta do Mercado Livre do usuário em somente leitura, na pasta dele, e deixa o pacote Elo pronto para usar. Conduz a criação do aplicativo no DevCenter, a autorização OAuth sem expor segredo no chat, a confirmação da conta e o primeiro painel. Use sempre que o usuário pedir para conectar, reconectar, instalar ou configurar o Mercado Livre, o pacote Elo ou qualquer skill elo-*, ou quando outra skill do pacote falhar por falta de conexão — mesmo que ele não diga "conectar". Use também quando ele relatar QUALQUER erro, travamento ou dúvida sobre o pacote, em qualquer momento depois da instalação: "deu erro", "não funciona", "parou", "python não encontrado", "invalid_grant", "a pasta foi recusada", "o painel não abre", "perdi o acesso". A tabela de sintomas reais está em references/problemas.md.
 ---
 
 # Conectar o Mercado Livre — pacote Elo
+
+> **Deu erro em qualquer ponto — agora ou semanas depois?** Abra
+> `references/problemas.md` **antes de improvisar**. É uma tabela de sintoma → causa → o que
+> fazer, com os erros reais que já aconteceram em máquina de verdade. Improvisar aqui gasta o
+> tempo do usuário e costuma errar: as mensagens do Mercado Livre não dizem a causa real.
+
 
 Esta skill tem uma missão só: levar o usuário de "nunca conectei nada" até **os números da
 própria loja na tela**, em cerca de 10 minutos, pelo mesmo caminho que todas as outras
@@ -65,9 +71,11 @@ python --version
 Daqui em diante, **use sempre o que funcionou**, em todos os comandos desta skill. Neste
 arquivo está escrito `python3`; troque pelo da máquina dele.
 
-Se nenhum responder, ou se vier 3.7 ou anterior, o usuário precisa instalar o Python do site
-oficial — no Windows, marcando **"Add python.exe to PATH"** na primeira tela do instalador.
-Sem isso, nada do pacote roda.
+Se nenhum responder, ou se vier 3.7 ou anterior: **diga isso com calma e resolva junto.** O
+guia que ele recebeu promete que você avisa e manda o link, então entregue exatamente isso —
+`python.org/downloads`, e **no Windows marcar "Add python.exe to PATH" na primeira tela do
+instalador**, que é o passo que mais gente pula. Depois que ele instalar, repita o teste e
+siga. Não trate como erro dele; é só um pré-requisito que faltava.
 
 ### 1. Preparar a pasta (e a verificação que mais importa)
 
