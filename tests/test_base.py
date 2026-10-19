@@ -20,6 +20,7 @@ import painel  # noqa: E402
 import pasta as pasta_mod  # noqa: E402
 import atualizacao  # noqa: E402
 import promocoes  # noqa: E402
+import caixa  # noqa: E402
 
 
 CONTA = {"id": 123456789, "apelido": "LOJA EXEMPLO", "site": "MLB"}
@@ -628,3 +629,136 @@ def test_promocoes_passa_no_contrato(api, tmp_path):
                               avisos=d["avisos"], pasta=tmp_path)
     assert gravado["contrato"] == "1"
     assert (tmp_path / "elo-promocoes.json").exists()
+
+
+# ------------------------------------------------------------------ elo-caixa
+
+def _pgto(pid="123456789", valor=100.0, libera_em=5, **extra):
+    base = dt.datetime(2026, 10, 19, 12, 0, tzinfo=caixa.FUSO)
+    d = {"id": pid, "status": "approved", "payment_type": "credit_card",
+         "transaction_amount": valor}
+    if libera_em is not None:
+        d["money_release_date"] = (base + dt.timedelta(days=libera_em)).isoformat()
+    d.update(extra)
+    return d
+
+
+def _pedido(*pagamentos):
+    return {"id": 1, "payments": list(pagamentos)}
+
+
+@pytest.fixture
+def pedidos(monkeypatch):
+    def instalar(lista):
+        chamadas = []
+
+        def falsa(metodo, path, params=None):
+            chamadas.append((metodo, path, params))
+            assert metodo == "GET"
+            assert path == "/orders/search"
+            if params.get("offset", 0) == 0:
+                return {"results": lista}
+            return {"results": []}
+
+        monkeypatch.setattr(caixa.meli, "request", falsa)
+        monkeypatch.setattr(caixa.meli, "conta_conectada",
+                            lambda: {"id": 1, "apelido": "LOJA", "site": "MLB"})
+        return chamadas
+    return instalar
+
+
+def test_caixa_agrupa_por_data_de_liberacao(pedidos):
+    pedidos([_pedido(_pgto(valor=100.0, libera_em=3)),
+             _pedido(_pgto(pid="987654321", valor=50.0, libera_em=3))])
+    d = caixa.coletar(hoje=HOJE)
+    assert len(d["itens"]) == 1
+    assert d["itens"][0]["valor"] == 150.0
+    assert d["itens"][0]["dias_ate_liberar"] == 3
+
+
+def test_caixa_ordena_pela_data(pedidos):
+    pedidos([_pedido(_pgto(valor=10.0, libera_em=9)),
+             _pedido(_pgto(pid="222222222", valor=20.0, libera_em=2))])
+    d = caixa.coletar(hoje=HOJE)
+    assert [i["dias_ate_liberar"] for i in d["itens"]] == [2, 9]
+
+
+def test_caixa_id_alfanumerico_nao_entra_porque_e_fatura(pedidos):
+    pedidos([_pedido(_pgto(pid="000felmloo", valor=45686.0))])
+    d = caixa.coletar(hoje=HOJE)
+    assert d["resumo"]["a_receber"] == 0
+    assert any("fatura do Meli" in a for a in d["avisos"])
+
+
+def test_caixa_saque_fica_fora_do_calendario(pedidos):
+    pedidos([_pedido(_pgto(valor=900.0, payment_type="payout"))])
+    d = caixa.coletar(hoje=HOJE)
+    assert d["resumo"]["a_receber"] == 0
+    assert any("saque ou transfer" in a for a in d["avisos"])
+
+
+def test_caixa_pagamento_sem_data_vira_lacuna_e_nao_soma(pedidos):
+    pedidos([_pedido(_pgto(valor=300.0, libera_em=None))])
+    d = caixa.coletar(hoje=HOJE)
+    assert d["resumo"]["a_receber"] == 0
+    assert "data_de_liberacao" in d["faltando"]
+    assert "300.00" in d["lacunas"]["data_de_liberacao"]
+
+
+def test_caixa_aceita_nome_alternativo_do_campo_de_liberacao(pedidos):
+    base = dt.datetime(2026, 10, 19, 12, 0, tzinfo=caixa.FUSO)
+    p = _pgto(valor=77.0, libera_em=None)
+    p["date_released"] = (base + dt.timedelta(days=4)).isoformat()
+    pedidos([_pedido(p)])
+    d = caixa.coletar(hoje=HOJE)
+    assert d["itens"][0]["valor"] == 77.0
+
+
+def test_caixa_pagamento_nao_aprovado_e_ignorado(pedidos):
+    pedidos([_pedido(_pgto(valor=500.0, status="rejected"))])
+    assert caixa.coletar(hoje=HOJE)["resumo"]["a_receber"] == 0
+
+
+def test_caixa_separa_o_que_ja_liberou(pedidos):
+    pedidos([_pedido(_pgto(valor=80.0, libera_em=-3)),
+             _pedido(_pgto(pid="333333333", valor=20.0, libera_em=4))])
+    d = caixa.coletar(hoje=HOJE)
+    assert d["resumo"]["ja_liberado_na_janela"] == 80.0
+    assert d["resumo"]["a_receber"] == 20.0
+
+
+def test_caixa_conta_os_proximos_sete_dias(pedidos):
+    pedidos([_pedido(_pgto(valor=10.0, libera_em=2)),
+             _pedido(_pgto(pid="444444444", valor=90.0, libera_em=20))])
+    d = caixa.coletar(hoje=HOJE)
+    assert d["resumo"]["libera_em_7_dias"] == 10.0
+    assert d["resumo"]["a_receber"] == 100.0
+
+
+def test_caixa_sempre_diz_que_nao_e_saldo_da_carteira(pedidos):
+    pedidos([])
+    d = caixa.coletar(hoje=HOJE)
+    assert "saldo_da_carteira" in d["faltando"]
+    assert "o_que_vazou" in d["faltando"]
+
+
+def test_caixa_sem_pedidos_nao_e_erro(pedidos):
+    pedidos([])
+    d = caixa.coletar(hoje=HOJE)
+    assert d["itens"] == [] and d["resumo"]["a_receber"] == 0
+
+
+def test_caixa_valor_que_nao_e_numero_e_contado_e_relatado(pedidos):
+    pedidos([_pedido(_pgto(valor="nao sei"))])
+    d = caixa.coletar(hoje=HOJE)
+    assert d["resumo"]["a_receber"] == 0
+    assert any("sem valor" in a for a in d["avisos"])
+
+
+def test_caixa_passa_no_contrato(pedidos, tmp_path):
+    pedidos([_pedido(_pgto(valor=123.45, libera_em=6))])
+    d = caixa.coletar(hoje=HOJE)
+    g = contrato.gravar("elo-caixa", conta=d["conta"], periodo=d["periodo"],
+                        resumo=d["resumo"], itens=d["itens"], faltando=d["faltando"],
+                        lacunas=d["lacunas"], avisos=d["avisos"], pasta=tmp_path)
+    assert g["contrato"] == "1"

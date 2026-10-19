@@ -101,6 +101,7 @@ deve?"*, *"atualiza o painel"*.
 | `elo-painel` | o painel local com os blocos das skills que você rodou |
 | `elo-criativos` | produto cru vira título, descrição, benefícios e objeções — **não precisa de conexão nenhuma** |
 | `elo-promocoes` | a fila do que termina nos próximos dias, com anúncios dentro e desconto mínimo |
+| `elo-caixa` | quanto as suas vendas ainda vão liberar, e em que dia cada valor cai |
 
 Mais skills entram pelo mesmo caminho: cada uma grava um arquivo no formato do
 [CONTRATO.md](./CONTRATO.md) e aparece como um bloco no painel.
