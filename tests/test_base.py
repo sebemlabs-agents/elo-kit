@@ -21,6 +21,7 @@ import pasta as pasta_mod  # noqa: E402
 import atualizacao  # noqa: E402
 import promocoes  # noqa: E402
 import caixa  # noqa: E402
+import spec  # noqa: E402
 
 
 CONTA = {"id": 123456789, "apelido": "LOJA EXEMPLO", "site": "MLB"}
@@ -762,3 +763,94 @@ def test_caixa_passa_no_contrato(pedidos, tmp_path):
                         resumo=d["resumo"], itens=d["itens"], faltando=d["faltando"],
                         lacunas=d["lacunas"], avisos=d["avisos"], pasta=tmp_path)
     assert g["contrato"] == "1"
+
+
+# ------------------------------------------------------------------- elo-spec
+
+def _grava(pasta, skill, itens, **extra):
+    base = dict(conta={"id": 1, "apelido": "LOJA", "site": "MLB"},
+                periodo={"de": "2026-10-01", "ate": "2026-10-19"},
+                resumo={"total": 1}, itens=itens, pasta=pasta)
+    base.update(extra)
+    return contrato.gravar(skill, **base)
+
+
+def test_spec_infere_o_tipo_pelo_dado_real(tmp_path):
+    _grava(tmp_path, "elo-promocoes", [
+        {"promocao": "X", "termina": "2026-10-24", "dias": 5,
+         "desconto": 15.5, "amplo": True, "extra": {"a": 1}}])
+    plano = spec.montar(tmp_path)
+    tipos = {c["origem"]: c["tipo"] for c in plano["blocos"][0]["colunas"]}
+    assert tipos["promocao"] == "text"
+    assert tipos["termina"] == "date"
+    assert tipos["dias"] == "integer"
+    assert tipos["desconto"] == "numeric(14,2)"
+    assert tipos["amplo"] == "boolean"
+    assert tipos["extra"] == "jsonb"
+
+
+def test_spec_coluna_sempre_vazia_e_marcada(tmp_path):
+    _grava(tmp_path, "elo-caixa", [{"valor": None}])
+    plano = spec.montar(tmp_path)
+    assert plano["blocos"][0]["colunas"][0]["sempre_vazia"] is True
+
+
+def test_spec_um_numero_entre_nulos_ainda_define_o_tipo(tmp_path):
+    _grava(tmp_path, "elo-caixa", [{"valor": None}, {"valor": 10.0}])
+    plano = spec.montar(tmp_path)
+    assert plano["blocos"][0]["colunas"][0]["tipo"] == "numeric(14,2)"
+
+
+def test_spec_une_colunas_de_itens_diferentes(tmp_path):
+    _grava(tmp_path, "elo-caixa", [{"a": 1}, {"b": "x"}])
+    plano = spec.montar(tmp_path)
+    assert [c["origem"] for c in plano["blocos"][0]["colunas"]] == ["a", "b"]
+
+
+def test_spec_nome_de_tabela_vira_identificador_valido(tmp_path):
+    _grava(tmp_path, "elo-promocoes", [{"a": 1}])
+    plano = spec.montar(tmp_path)
+    assert plano["blocos"][0]["tabela"] == "elo_promocoes"
+
+
+def test_spec_recusa_pasta_sem_dado(tmp_path):
+    with pytest.raises(FileNotFoundError):
+        spec.montar(tmp_path)
+
+
+def test_spec_sempre_liga_rls_e_nao_cria_politica(tmp_path):
+    _grava(tmp_path, "elo-caixa", [{"valor": 1.0}])
+    texto = spec.escrever(spec.montar(tmp_path), tmp_path).read_text(encoding="utf-8")
+    assert "enable row level security" in texto
+    assert "create policy" not in texto
+    assert "ninguém lê nada" in texto
+
+
+def test_spec_escreve_a_fronteira_dos_segredos(tmp_path):
+    _grava(tmp_path, "elo-caixa", [{"valor": 1.0}])
+    texto = spec.escrever(spec.montar(tmp_path), tmp_path).read_text(encoding="utf-8")
+    assert "Os dados sobem. A credencial não." in texto
+    for arquivo in ("tokens.json", "credenciais.txt", ".env"):
+        assert arquivo in texto
+
+
+def test_spec_nao_vaza_valor_de_segredo(tmp_path):
+    (tmp_path / "credenciais.txt").write_text("MELI_APP_ID=999\nMELI_CLIENT_SECRET=abc\n",
+                                              encoding="utf-8")
+    _grava(tmp_path, "elo-caixa", [{"valor": 1.0}])
+    texto = spec.escrever(spec.montar(tmp_path), tmp_path).read_text(encoding="utf-8")
+    assert "999" not in texto and "abc" not in texto
+
+
+def test_spec_avisa_quando_a_skill_esta_em_demonstracao(tmp_path):
+    _grava(tmp_path, "elo-caixa", [{"valor": 1.0}], fonte="demo")
+    texto = spec.escrever(spec.montar(tmp_path), tmp_path).read_text(encoding="utf-8")
+    assert "demonstração" in texto
+    assert "nasce mentindo" in texto
+
+
+def test_spec_aponta_superpowers_sem_exigir(tmp_path):
+    _grava(tmp_path, "elo-caixa", [{"valor": 1.0}])
+    texto = spec.escrever(spec.montar(tmp_path), tmp_path).read_text(encoding="utf-8")
+    assert "superpowers" in texto
+    assert "Não é necessário" in texto

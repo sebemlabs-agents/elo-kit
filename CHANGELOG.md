@@ -28,3 +28,13 @@ Este arquivo existe para contar o que mudou, não para controlar entrega.
 
 - Conexão só-leitura com o Mercado Livre (`elo-conectar-meli`), painel local (`elo-painel`),
   contrato de dados e 43 testes.
+
+## 19 de outubro, tarde
+
+- **`elo-promocoes`**: a fila do que termina na janela, com anúncios dentro, desconto mínimo
+  e o que já foi aderido. Recorte do radar que roda na operação, trazido para o contrato.
+- **`elo-caixa`**: o calendário de liberação das vendas — quanto cai e quando. Não é o saldo
+  da carteira, e a skill diz isso antes de mostrar número.
+- **`elo-spec`**: lê o painel local e escreve o plano para subir para Supabase e Vercel, com
+  o esquema tirado dos dados reais, segurança de linha ligada e nenhuma política — a tabela
+  nasce trancada de propósito.
