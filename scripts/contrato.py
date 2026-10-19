@@ -21,7 +21,7 @@ CONTRATO = "1"
 # api  = leitura da conta real
 # demo = dados de demonstracao preparados
 # local = produzido aqui, sem ler conta nenhuma (ex.: conteudo de produto)
-FONTES = ("api", "demo", "local")
+FONTES = ("api", "demo", "local", "export")
 
 # Chaves cujo valor e dinheiro. Usadas para recusar valor monetario como texto
 # (o classico "1.234,56" que quebra qualquer soma depois).
@@ -112,7 +112,8 @@ def validar(dado):
 
 
 def montar(skill, conta, periodo, resumo, itens, faltando=None, lacunas=None,
-           avisos=None, fonte="api", paginacao=None, moeda="BRL"):
+           avisos=None, fonte="api", paginacao=None, moeda="BRL",
+           capturado_em=None):
     """Monta o envelope e valida, sem tocar em disco.
 
     conta pode vir None quando fonte='local' — ver CONTRATO.md secao 2."""
@@ -121,6 +122,10 @@ def montar(skill, conta, periodo, resumo, itens, faltando=None, lacunas=None,
         "skill": skill,
         "gerado_em": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
         "fonte": fonte,
+        # Quando o dado veio de arquivo, ele tem DUAS idades: quando foi
+        # processado (gerado_em) e quando foi capturado da origem. Confundir
+        # as duas e mostrar dado de semana passada como se fosse de agora.
+        "capturado_em": capturado_em,
         "conta": conta or {"id": None, "apelido": None, "site": None},
         "periodo": periodo if periodo else {"de": None, "ate": None},
         "moeda": moeda,
@@ -140,11 +145,12 @@ def caminho(skill, pasta=None):
 
 
 def gravar(skill, conta, periodo, resumo, itens, faltando=None, lacunas=None,
-           avisos=None, fonte="api", paginacao=None, moeda="BRL", pasta=None):
+           avisos=None, fonte="api", paginacao=None, moeda="BRL", pasta=None,
+           capturado_em=None):
     """Valida e grava <skill>.json na pasta. Devolve o que foi gravado."""
     dado = montar(skill, conta, periodo, resumo, itens, faltando=faltando,
                   lacunas=lacunas, avisos=avisos, fonte=fonte,
-                  paginacao=paginacao, moeda=moeda)
+                  paginacao=paginacao, moeda=moeda, capturado_em=capturado_em)
     alvo = caminho(skill, pasta)
     alvo.write_text(
         json.dumps(dado, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"

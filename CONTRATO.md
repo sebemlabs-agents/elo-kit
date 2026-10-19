@@ -78,7 +78,7 @@ mesmo vazios.
 | `contrato` | sim | versão deste contrato, sempre string. O painel recusa versão que não conhece em vez de desenhar errado. |
 | `skill` | sim | nome da skill, igual ao nome do arquivo sem extensão. |
 | `gerado_em` | sim | ISO 8601 **com fuso** (`-03:00`). O painel mostra a idade do dado; dado de ontem apresentado como de hoje é decisão errada. |
-| `fonte` | sim | `"api"`, `"demo"` ou `"local"`. Ver seção 4. |
+| `fonte` | sim | `"api"`, `"demo"`, `"local"` ou `"export"`. Ver seção 4. |
 | `conta` | quando `fonte` é `"api"` | `id` e `apelido` vêm da própria API. É o que permite a pessoa confirmar que é a loja certa. Com `fonte: "local"` não existe conta para nomear, e os campos vêm `null`. |
 | `periodo` | sim | datas `AAAA-MM-DD`. Quando a skill não tem recorte de período, use `null` nos dois. |
 | `moeda` | sim quando houver valor | `"BRL"`. |
@@ -133,6 +133,19 @@ O campo `fonte` diz isso, e tem três valores:
 - **`"demo"`** — dados de demonstração preparados, para quem não conseguiu conectar.
 - **`"local"`** — produzido na própria máquina, sem ler conta nenhuma. É o caso de uma skill
   de conteúdo de produto: não há conta para nomear, e inventar uma seria mentira no painel.
+- **`"export"`** — veio de uma planilha que a pessoa baixou: exportação de marketplace,
+  relatório de ERP, custo feito à mão. Exige `capturado_em`.
+
+### Dado de planilha tem duas idades
+
+`gerado_em` é quando o pacote processou. `capturado_em` é **quando o arquivo foi baixado da
+origem**, e vem da data de modificação do próprio arquivo.
+
+Confundir as duas é o erro silencioso desta fonte: o painel diria "atualizado agora" sobre uma
+exportação de semana passada, e alguém decidiria com número velho achando que era de hoje.
+
+**Obrigação do painel:** com `fonte: "export"`, mostrar a idade do arquivo ao lado da idade do
+processamento, e marcar o bloco como vindo de planilha.
 
 ### Modo demonstração
 
@@ -171,7 +184,7 @@ carregar(skill: str) -> dict | None    # None quando o arquivo não existe
 `gravar` valida antes de escrever e levanta erro quando:
 
 - `faltando` tem um nome sem entrada correspondente em `lacunas`;
-- `fonte` não é `"api"` nem `"demo"`;
+- `fonte` não é um dos quatro valores conhecidos;
 - algum valor monetário chegou como string;
 - `resumo` tem valor aninhado (tem de ser raso).
 

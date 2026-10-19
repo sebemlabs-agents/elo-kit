@@ -22,6 +22,7 @@ import atualizacao  # noqa: E402
 import promocoes  # noqa: E402
 import caixa  # noqa: E402
 import spec  # noqa: E402
+import planilha  # noqa: E402
 
 
 CONTA = {"id": 123456789, "apelido": "LOJA EXEMPLO", "site": "MLB"}
@@ -854,3 +855,215 @@ def test_spec_aponta_superpowers_sem_exigir(tmp_path):
     texto = spec.escrever(spec.montar(tmp_path), tmp_path).read_text(encoding="utf-8")
     assert "superpowers" in texto
     assert "Não é necessário" in texto
+
+
+# ------------------------------------------------- planilha: CSV e XLSX crus
+
+def _csv(tmp_path, linhas, codec="utf-8"):
+    p = tmp_path / "x.csv"
+    p.write_bytes("\n".join(linhas).encode(codec))
+    return p
+
+
+def test_planilha_csv_com_ponto_e_virgula_e_latin1(tmp_path):
+    p = _csv(tmp_path, ["SKU;Descrição", "A1;Assador Giratório"], codec="latin-1")
+    d = planilha.ler(p)
+    assert d["colunas"] == ["SKU", "Descrição"]
+    assert d["linhas"][0]["Descrição"] == "Assador Giratório"
+
+
+def test_planilha_csv_com_virgula(tmp_path):
+    p = _csv(tmp_path, ["sku,nome", "A1,Chapa"])
+    assert planilha.ler(p)["colunas"] == ["sku", "nome"]
+
+
+def test_planilha_numero_brasileiro_vira_numero():
+    assert planilha.numero_br("1.234,56") == 1234.56
+    assert planilha.numero_br("R$ 987,00") == 987.0
+    assert planilha.numero_br("(50,00)") == -50.0
+
+
+def test_planilha_numero_americano_tambem():
+    assert planilha.numero_br("1,234.56") == 1234.56
+
+
+def test_planilha_texto_que_nao_e_numero_fica_texto():
+    assert planilha.numero_br("ABC-1") is None
+    assert planilha.numero_br("") is None
+
+
+def test_planilha_data_brasileira_vira_iso(tmp_path):
+    p = _csv(tmp_path, ["quando", "15/03/2026"])
+    assert planilha.ler(p)["linhas"][0]["quando"] == "2026-03-15"
+
+
+def test_planilha_celula_vazia_fica_none(tmp_path):
+    p = _csv(tmp_path, ["a;b", "1;"])
+    assert planilha.ler(p)["linhas"][0]["b"] is None
+
+
+def test_planilha_linha_curta_nao_quebra(tmp_path):
+    p = _csv(tmp_path, ["a;b;c", "1;2"])
+    assert planilha.ler(p)["linhas"][0]["c"] is None
+
+
+def test_planilha_coluna_sem_nome_ganha_um(tmp_path):
+    p = _csv(tmp_path, ["a;;c", "1;2;3"])
+    assert planilha.ler(p)["colunas"][1] == "coluna_2"
+
+
+def test_planilha_coluna_repetida_nao_se_sobrescreve(tmp_path):
+    p = _csv(tmp_path, ["total;total", "1;2"])
+    cols = planilha.ler(p)["colunas"]
+    assert cols[0] != cols[1]
+    assert len(set(cols)) == 2
+
+
+def test_planilha_perfil_descreve_tipo_e_exemplos(tmp_path):
+    p = _csv(tmp_path, ["custo;nome", "10,50;Chapa", ";Assador"])
+    perfil = {c["coluna"]: c for c in planilha.perfil(planilha.ler(p))}
+    assert perfil["custo"]["tipo"] == "número"
+    assert perfil["custo"]["vazias"] == 1
+    assert perfil["nome"]["exemplos"][0] == "Chapa"
+
+
+def test_planilha_coluna_toda_vazia_e_dita(tmp_path):
+    p = _csv(tmp_path, ["a;b", "1;"])
+    perfil = {c["coluna"]: c for c in planilha.perfil(planilha.ler(p))}
+    assert perfil["b"]["tipo"] == "sempre vazia"
+
+
+def test_planilha_guarda_quando_o_arquivo_foi_capturado(tmp_path):
+    d = planilha.ler(_csv(tmp_path, ["a", "1"]))
+    assert d["capturado_em"]
+
+
+def test_planilha_xls_antigo_explica_o_que_fazer(tmp_path):
+    p = tmp_path / "velho.xls"
+    p.write_bytes(b"qualquer coisa")
+    with pytest.raises(planilha.PlanilhaIlegivel) as e:
+        planilha.ler(p)
+    assert "salve como" in str(e.value)
+
+
+def test_planilha_extensao_desconhecida_recusa(tmp_path):
+    p = tmp_path / "x.pdf"
+    p.write_bytes(b"...")
+    with pytest.raises(planilha.PlanilhaIlegivel):
+        planilha.ler(p)
+
+
+def test_planilha_arquivo_que_nao_existe(tmp_path):
+    with pytest.raises(FileNotFoundError):
+        planilha.ler(tmp_path / "nao-existe.csv")
+
+
+def test_planilha_csv_vazio_recusa(tmp_path):
+    with pytest.raises(planilha.PlanilhaIlegivel):
+        planilha.ler(_csv(tmp_path, []))
+
+
+def test_coluna_para_indice():
+    assert planilha.coluna_para_indice("A1") == 0
+    assert planilha.coluna_para_indice("Z9") == 25
+    assert planilha.coluna_para_indice("AA1") == 26
+    assert planilha.coluna_para_indice("BC12") == 54
+
+
+def _xlsx(tmp_path):
+    import zipfile
+    ss = ('<?xml version="1.0"?><sst xmlns="http://schemas.openxmlformats.org/'
+          'spreadsheetml/2006/main"><si><t>SKU</t></si><si><t>Custo</t></si>'
+          '<si><t>Quando</t></si><si><t>X-1</t></si></sst>')
+    styles = ('<?xml version="1.0"?><styleSheet xmlns="http://schemas.openxmlformats.org/'
+              'spreadsheetml/2006/main"><numFmts><numFmt numFmtId="165" '
+              'formatCode="dd/mm/yyyy"/></numFmts><cellXfs><xf numFmtId="0"/>'
+              '<xf numFmtId="165"/></cellXfs></styleSheet>')
+    wb = ('<?xml version="1.0"?><workbook xmlns="http://schemas.openxmlformats.org/'
+          'spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/'
+          'officeDocument/2006/relationships"><sheets><sheet name="Dados" sheetId="1" '
+          'r:id="rId1"/><sheet name="Outra" sheetId="2" r:id="rId2"/></sheets></workbook>')
+    rels = ('<?xml version="1.0"?><Relationships xmlns="http://schemas.openxmlformats.org/'
+            'package/2006/relationships"><Relationship Id="rId1" '
+            'Target="worksheets/sheet1.xml"/><Relationship Id="rId2" '
+            'Target="worksheets/sheet2.xml"/></Relationships>')
+    s1 = ('<?xml version="1.0"?><worksheet xmlns="http://schemas.openxmlformats.org/'
+          'spreadsheetml/2006/main"><sheetData>'
+          '<row r="1"><c r="A1" t="s"><v>0</v></c><c r="B1" t="s"><v>1</v></c>'
+          '<c r="C1" t="s"><v>2</v></c></row>'
+          '<row r="2"><c r="A2" t="s"><v>3</v></c><c r="B2"><v>1234.56</v></c>'
+          '<c r="C2" s="1"><v>46096</v></c></row>'
+          '<row r="3"><c r="A3" t="inlineStr"><is><t>X-2</t></is></c>'
+          '<c r="B3"><v>99</v></c></row></sheetData></worksheet>')
+    s2 = ('<?xml version="1.0"?><worksheet xmlns="http://schemas.openxmlformats.org/'
+          'spreadsheetml/2006/main"><sheetData><row r="1"><c r="A1" t="inlineStr">'
+          '<is><t>obs</t></is></c></row></sheetData></worksheet>')
+    p = tmp_path / "x.xlsx"
+    with zipfile.ZipFile(p, "w") as z:
+        z.writestr("xl/workbook.xml", wb)
+        z.writestr("xl/_rels/workbook.xml.rels", rels)
+        z.writestr("xl/sharedStrings.xml", ss)
+        z.writestr("xl/styles.xml", styles)
+        z.writestr("xl/worksheets/sheet1.xml", s1)
+        z.writestr("xl/worksheets/sheet2.xml", s2)
+    return p
+
+
+def test_xlsx_le_strings_compartilhadas_e_embutidas(tmp_path):
+    d = planilha.ler(_xlsx(tmp_path))
+    assert d["colunas"] == ["SKU", "Custo", "Quando"]
+    assert [l["SKU"] for l in d["linhas"]] == ["X-1", "X-2"]
+
+
+def test_xlsx_numero_continua_numero(tmp_path):
+    d = planilha.ler(_xlsx(tmp_path))
+    assert d["linhas"][0]["Custo"] == 1234.56
+
+
+def test_xlsx_serial_com_formato_de_data_vira_data(tmp_path):
+    d = planilha.ler(_xlsx(tmp_path))
+    assert d["linhas"][0]["Quando"] == "2026-03-15"
+
+
+def test_xlsx_lista_as_abas_e_le_a_primeira(tmp_path):
+    d = planilha.ler(_xlsx(tmp_path))
+    assert d["abas"] == ["Dados", "Outra"] and d["aba"] == "Dados"
+
+
+def test_xlsx_aba_inexistente_diz_quais_existem(tmp_path):
+    with pytest.raises(planilha.PlanilhaIlegivel) as e:
+        planilha.ler(_xlsx(tmp_path), aba=9)
+    assert "Dados" in str(e.value) and "Outra" in str(e.value)
+
+
+def test_xlsx_que_nao_e_zip_explica(tmp_path):
+    p = tmp_path / "falso.xlsx"
+    p.write_bytes(b"isto nao e um zip")
+    with pytest.raises(planilha.PlanilhaIlegivel) as e:
+        planilha.ler(p)
+    assert ".xls" in str(e.value)
+
+
+# ------------------------------------------------ contrato: origem 'export'
+
+def test_contrato_aceita_fonte_export(tmp_path):
+    d = contrato.gravar("elo-margem", conta=None, periodo=None, resumo={"n": 1},
+                        itens=[{"sku": "A"}], fonte="export",
+                        capturado_em="2026-10-12T09:00:00-03:00", pasta=tmp_path)
+    assert d["fonte"] == "export"
+    assert d["capturado_em"] == "2026-10-12T09:00:00-03:00"
+
+
+def test_contrato_capturado_em_e_opcional(tmp_path):
+    d = contrato.gravar("elo-promocoes", conta={"id": 1, "apelido": "L", "site": "MLB"},
+                        periodo=None, resumo={}, itens=[], pasta=tmp_path)
+    assert d["capturado_em"] is None
+
+
+def test_painel_marca_dado_de_planilha_e_a_idade_do_arquivo(tmp_path):
+    contrato.gravar("elo-margem", conta=None, periodo=None, resumo={"n": 1},
+                    itens=[{"sku": "A"}], fonte="export",
+                    capturado_em="2026-10-12T09:00:00-03:00", pasta=tmp_path)
+    html = painel.render(contrato.carregar_todos(tmp_path))
+    assert "de planilha" in html
+    assert "arquivo de" in html

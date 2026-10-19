@@ -26,6 +26,7 @@ BASE = Path(__file__).resolve().parent
 TITULOS = {
     "elo-promocoes": "Promoções terminando",
     "elo-caixa": "Dinheiro a receber",
+    "elo-margem": "Margem por anúncio",
     "elo-criativos": "Conteúdo de produto",
     "elo-devolucoes": "Devoluções",
     "elo-margem": "Margem por anúncio",
@@ -180,11 +181,18 @@ def bloco_skill(dado):
     if periodo.get("de") and periodo.get("ate"):
         recorte = " · %s a %s" % (_e(periodo["de"]), _e(periodo["ate"]))
     selo = '<span class="demo">dados de demonstração</span>' if demo else ""
+    if dado.get("fonte") == "export":
+        selo = '<span class="export">de planilha</span>'
+    # Dado de arquivo tem duas idades. Mostrar so a do processamento faria
+    # planilha de semana passada parecer leitura de agora.
+    captura = ""
+    if dado.get("capturado_em"):
+        captura = " · arquivo de %s" % _e(idade(dado["capturado_em"]))
     return """
 <section class="bloco%s">
   <header>
     <h2>%s %s</h2>
-    <p class="meta">%s%s · atualizado %s</p>
+    <p class="meta">%s%s · atualizado %s%s</p>
   </header>
   %s
   %s
@@ -197,6 +205,7 @@ def bloco_skill(dado):
         _e(skill),
         recorte,
         _e(idade(dado.get("gerado_em"))),
+        captura,
         bloco_resumo(dado.get("resumo")),
         bloco_lacunas(dado),
         bloco_itens(dado.get("itens")),
@@ -249,6 +258,9 @@ padding:26px 28px;margin-top:18px;box-shadow:var(--sombra)}
 .demo{display:inline-block;font-size:.68rem;font-weight:650;letter-spacing:.05em;
 text-transform:uppercase;background:var(--violeta);color:#fff;padding:3px 10px;
 border-radius:30px;vertical-align:middle;margin-left:8px}
+.export{display:inline-block;font-size:.68rem;font-weight:650;letter-spacing:.05em;
+text-transform:uppercase;background:var(--indigo-suave);color:var(--indigo-forte);
+padding:3px 10px;border-radius:30px;vertical-align:middle;margin-left:8px}
 .meta{margin:5px 0 0;color:var(--tinta3);font-size:.82rem}
 
 /* numeros */

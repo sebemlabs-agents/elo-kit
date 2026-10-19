@@ -41,3 +41,7 @@ Este arquivo existe para contar o que mudou, não para controlar entrega.
 - **Correção silenciosa que teria estragado o primeiro teste:** skill nova chega pela
   atualização, mas o script dela não aparece sozinho na pasta de quem já instalou. As skills
   agora conferem e copiam de `${CLAUDE_PLUGIN_ROOT}/scripts/` antes do primeiro comando.
+- **`elo-planilha`**: lê qualquer CSV ou XLSX — exportação de marketplace, relatório de ERP,
+  custo feito à mão — descreve as colunas e deixa o mapeamento com quem entende a planilha.
+  Sem formato obrigatório, sem dependência instalada. O contrato ganha a origem `export`, e
+  com ela `capturado_em`: dado de arquivo tem duas idades, e o painel mostra as duas.
