@@ -17,6 +17,7 @@ import meli  # noqa: E402
 import criativos  # noqa: E402
 import painel  # noqa: E402
 import pasta as pasta_mod  # noqa: E402
+import atualizacao  # noqa: E402
 
 
 CONTA = {"id": 123456789, "apelido": "LOJA EXEMPLO", "site": "MLB"}
@@ -315,3 +316,83 @@ def test_idade_do_dado_aparece():
     dado = contrato.montar("elo-caixa", CONTA, PERIODO, {}, [])
     dado["gerado_em"] = antigo
     assert "há 2 h" in painel.render([dado])
+
+
+# ---------------------------------------------------------------- atualizacao
+
+def _base_falsa(tmp_path, auto=None, com_settings=True, registrado=True):
+    base = tmp_path / ".claude"
+    (base / "plugins").mkdir(parents=True)
+    cfg = {"extraKnownMarketplaces": {}}
+    if registrado and com_settings:
+        entrada = {"source": {"source": "github", "repo": "sebemlabs-agents/elo-kit"}}
+        if auto is not None:
+            entrada["autoUpdate"] = auto
+        cfg["extraKnownMarketplaces"]["elo-kit"] = entrada
+    cfg["outraCoisa"] = {"preservar": True}
+    (base / "settings.json").write_text(json.dumps(cfg), encoding="utf-8")
+    conhecidos = {}
+    if registrado:
+        conhecidos["elo-kit"] = {"source": {}, "installLocation": "/x"}
+        if auto is not None:
+            conhecidos["elo-kit"]["autoUpdate"] = auto
+    (base / "plugins" / "known_marketplaces.json").write_text(
+        json.dumps(conhecidos), encoding="utf-8")
+    return base
+
+
+def test_atualizacao_desligada_por_padrao(tmp_path):
+    assert atualizacao.estado(_base_falsa(tmp_path)) == "desligada"
+
+
+def test_atualizacao_le_ligada(tmp_path):
+    assert atualizacao.estado(_base_falsa(tmp_path, auto=True)) == "ligada"
+
+
+def test_atualizacao_le_desligada_explicita(tmp_path):
+    assert atualizacao.estado(_base_falsa(tmp_path, auto=False)) == "desligada"
+
+
+def test_atualizacao_sem_catalogo_diz_nao_instalado(tmp_path):
+    assert atualizacao.estado(_base_falsa(tmp_path, registrado=False)) == "nao instalado"
+
+
+def test_ligar_muda_os_dois_arquivos(tmp_path):
+    base = _base_falsa(tmp_path)
+    mudou = atualizacao.ligar(base)
+    assert set(mudou) == {"settings.json", "known_marketplaces.json"}
+    assert atualizacao.estado(base) == "ligada"
+
+
+def test_ligar_preserva_o_resto_das_configuracoes(tmp_path):
+    base = _base_falsa(tmp_path)
+    atualizacao.ligar(base)
+    cfg = json.loads((base / "settings.json").read_text(encoding="utf-8"))
+    assert cfg["outraCoisa"] == {"preservar": True}
+    assert cfg["extraKnownMarketplaces"]["elo-kit"]["source"]["repo"] == \
+        "sebemlabs-agents/elo-kit"
+
+
+def test_ligar_faz_copia_de_seguranca(tmp_path):
+    base = _base_falsa(tmp_path)
+    atualizacao.ligar(base)
+    assert (base / "settings.json.bak-elo").exists()
+
+
+def test_ligar_duas_vezes_nao_reescreve(tmp_path):
+    base = _base_falsa(tmp_path)
+    atualizacao.ligar(base)
+    assert atualizacao.ligar(base) == []
+
+
+def test_ligar_recusa_quando_nao_instalado(tmp_path):
+    with pytest.raises(atualizacao.SemClaude):
+        atualizacao.ligar(_base_falsa(tmp_path, registrado=False))
+
+
+def test_estado_aceita_known_marketplaces_aninhado(tmp_path):
+    base = _base_falsa(tmp_path, com_settings=False)
+    k = base / "plugins" / "known_marketplaces.json"
+    k.write_text(json.dumps({"marketplaces": {"elo-kit": {"autoUpdate": True}}}),
+                 encoding="utf-8")
+    assert atualizacao.estado(base) == "ligada"

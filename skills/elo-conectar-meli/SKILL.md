@@ -1,6 +1,6 @@
 ---
 name: elo-conectar-meli
-description: Conecta a conta do Mercado Livre do usuário em somente leitura, na pasta dele, e deixa o pacote Elo pronto para usar. Conduz a criação do aplicativo no DevCenter, a autorização OAuth sem expor segredo no chat, a confirmação da conta e o primeiro painel. Use sempre que o usuário pedir para conectar, reconectar, instalar ou configurar o Mercado Livre, o pacote Elo ou qualquer skill elo-*, ou quando outra skill do pacote falhar por falta de conexão — mesmo que ele não diga "conectar". Use também quando ele relatar QUALQUER erro, travamento ou dúvida sobre o pacote, em qualquer momento depois da instalação: "deu erro", "não funciona", "parou", "python não encontrado", "invalid_grant", "a pasta foi recusada", "o painel não abre", "perdi o acesso". A tabela de sintomas reais está em references/problemas.md.
+description: Conecta a conta do Mercado Livre do usuário em somente leitura, na pasta dele, e deixa o pacote Elo pronto para usar. Conduz a criação do aplicativo no DevCenter, a autorização OAuth sem expor segredo no chat, a confirmação da conta e o primeiro painel. Use sempre que o usuário pedir para conectar, reconectar, instalar ou configurar o Mercado Livre, o pacote Elo ou qualquer skill elo-*, ou quando outra skill do pacote falhar por falta de conexão — mesmo que ele não diga "conectar". Use também quando ele relatar QUALQUER erro, travamento ou dúvida sobre o pacote, em qualquer momento depois da instalação: "deu erro", "não funciona", "parou", "python não encontrado", "invalid_grant", "a pasta foi recusada", "o painel não abre", "perdi o acesso". Use também quando ele perguntar se está atualizado, por que uma correção não chegou, ou como ligar a atualização automática do pacote. A tabela de sintomas reais está em references/problemas.md.
 ---
 
 # Conectar o Mercado Livre — pacote Elo
@@ -184,12 +184,42 @@ permanente, e ele constrói tudo igual. Depois cria a aplicação com calma.
 
 Nunca apresente dado de demonstração como se fosse da conta dele.
 
-### 8. Fechar com o recibo
+### 8. Deixar o pacote se atualizar sozinho
+
+**Faça isto em toda instalação.** Catálogo que não é da Anthropic nasce com a atualização
+automática **desligada** — então, sem este passo, nenhuma correção que eu publicar chega
+nesta máquina, e a pessoa fica para sempre na versão do dia em que instalou. É o problema
+mais silencioso do pacote: nada quebra, ela só fica para trás sem saber.
+
+Veja como está:
+
+```
+python3 atualizacao.py
+```
+
+Se responder **DESLIGADA**, explique em uma frase — *"o pacote recebe skills novas e
+correções; quer que isso chegue sozinho?"* — e **pergunte antes**, porque é uma configuração
+do Claude dela, não do pacote. Com o sim:
+
+```
+python3 atualizacao.py --ligar
+```
+
+Guarda cópia dos arquivos antes de mexer, não toca em nenhuma outra configuração, e vale a
+partir da próxima vez que ela abrir o Claude. Se ela disser não, respeite e avise que, nesse
+caso, é ela quem precisa pedir a atualização de vez em quando.
+
+**Se ela perguntar isso depois, em qualquer conversa** — "estou atualizado?", "como ligo a
+atualização automática?", "por que não chegou a correção?" —, é este mesmo comando. Rode você,
+não mande ela digitar.
+
+### 9. Fechar com o recibo
 
 Termine com um resumo curto, que é o que faz a pessoa sentir que está pronto:
 
 - a loja conectada, por **apelido e id** — para ela confirmar que é a conta certa;
 - até quando o acesso vale e se a renovação automática está ligada;
+- se o pacote vai se atualizar sozinho, conforme a etapa 8;
 - a pasta onde tudo mora;
 - **o que isto nunca faz:** não altera preço, estoque, anúncio nem pedido, não adere a
   promoção, não responde pergunta, não envia mensagem;

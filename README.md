@@ -53,16 +53,18 @@ codex plugin marketplace add sebemlabs-agents/elo-kit
 codex plugin add elo-kit@elo-kit
 ```
 
-### 1b. Ligar a atualização automática (um clique, recomendado)
+### 1b. Deixar o pacote se atualizar sozinho
 
-O pacote cresce: skills novas entram aqui e chegam para quem já instalou. Só que
-**atualização automática vem desligada** em catálogo que não é da Anthropic — é uma proteção
-do Claude, não um descuido nosso. Para ligar:
+O pacote ganha skills novas e correções com o tempo. Mas **atualização automática vem
+desligada** em catálogo que não é da Anthropic — é uma proteção do Claude, não um descuido
+nosso. Sem ligar, você fica na versão do dia em que instalou.
 
-**Configurações → Plugins → aba Marketplaces → elo-kit → Enable auto-update.**
+Não precisa procurar menu nem decorar comando. **Peça ao Claude:**
 
-Sem isso, nada quebra: o que você instalou continua funcionando. Você só não recebe as skills
-novas até atualizar à mão, com `claude plugin update elo-kit@elo-kit`.
+> liga a atualização automática do elo-kit
+
+A skill de conexão cuida disso, pergunta antes de mexer e guarda cópia da sua configuração.
+Para saber como está a qualquer momento: *"o elo-kit está atualizando sozinho?"*
 
 ### 2. Criar a pasta onde tudo vai morar
 

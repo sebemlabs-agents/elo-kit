@@ -60,3 +60,19 @@ No Windows, `Documentos` normalmente está **dentro do OneDrive**, e o pacote re
 deve. Use uma pasta na raiz do perfil, por exemplo `C:\Users\<nome>\elo-meli`.
 
 Não contorne a verificação: o token da conta não pode ir para a nuvem sem o dono saber.
+
+## "Corrigiram isso, mas na minha máquina continua igual"
+
+A atualização automática do catálogo está desligada — é o padrão para catálogo que não é da
+Anthropic, não é defeito da máquina dela. Enquanto estiver assim, a pessoa fica na versão do
+dia em que instalou, para sempre, sem nenhum aviso.
+
+```
+python3 atualizacao.py          # diz como está
+python3 atualizacao.py --ligar  # liga, depois de perguntar a ela
+```
+
+**Rode você, não mande ela digitar.** Vale a partir da próxima vez que ela abrir o Claude.
+
+Para trazer a versão nova agora, sem esperar: `claude plugin marketplace update elo-kit` —
+este é o único caso em que vale pedir que ela rode algo, e só se ela estiver com pressa.
