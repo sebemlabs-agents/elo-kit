@@ -1,10 +1,16 @@
 # Mudanças do elo-kit
 
-A versão fica em `.claude-plugin/plugin.json`. **Toda mudança que a pessoa deve receber
-precisa subir a versão** — sem isso o Claude considera a cópia dela atualizada e deixa o
-botão "Atualizar" cinza, mesmo com o GitHub à frente.
+**O manifesto não fixa versão de propósito.** Sem `version`, o Claude usa o commit como
+versão: todo push publicado vira uma versão nova, e quem está com atualização automática
+ligada recebe sozinho, sem rodar nada e sem reinstalar.
 
-## 0.2.0
+Fixar `version` aqui faria o oposto — prenderia todo mundo na cópia antiga até alguém lembrar
+de mudar o número à mão. Já aconteceu: o pacote ficou em `0.1.0` por cinco mudanças seguidas
+e o botão "Atualizar" aparecia cinza, com o GitHub três commits à frente.
+
+Este arquivo existe para contar o que mudou, não para controlar entrega.
+
+## Outubro de 2026
 
 - **Funciona no Windows.** A skill descobre como o Python se chama na máquina (`python3`,
   `py -3`, `python`) antes do primeiro comando; a checagem de rede deixou de usar `curl` e
@@ -18,7 +24,7 @@ botão "Atualizar" cinza, mesmo com o GitHub à frente.
 - **Guias com as duas telas de instalação** do aplicativo, e sem pedir checagem de Python
   antes de começar.
 
-## 0.1.0
+## O começo
 
 - Conexão só-leitura com o Mercado Livre (`elo-conectar-meli`), painel local (`elo-painel`),
   contrato de dados e 43 testes.
