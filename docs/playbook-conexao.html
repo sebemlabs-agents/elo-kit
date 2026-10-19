@@ -82,8 +82,8 @@
      2. Confirma que você tem o login da <strong>conta administradora</strong> do Meli (a que vê o financeiro).<br>
      3. Cria uma pasta nova chamada <code>elo-meli</code> em Documentos — <strong>fora</strong> de Dropbox, iCloud ou Google Drive — e conecta ela no Claude.</p>
   <p>Na call você vai rodar só isso:</p>
-  <p><code>claude plugin marketplace add sebemlabs-agents/elo-kit</code><br>
-     <code>claude plugin install elo-kit@elo-kit</code></p>
+  <p><code>claude plugin install elo-kit --marketplace sebemlabs-agents/elo-kit</code></p>
+  <p class="nota">Em Claude Code anterior a 2.1.292: <code>claude plugin marketplace add sebemlabs-agents/elo-kit</code> e depois <code>claude plugin install elo-kit@elo-kit</code>.</p>
   <p>E depois pedir pro Claude: <strong>"conecta minha conta do Mercado Livre"</strong>. Ele conduz o resto.</p>
 </div>
 <p class="nota">Não mande mais que isso. O resto é o que está sendo testado.</p>

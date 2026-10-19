@@ -90,8 +90,9 @@
 
 <div class="passo"><span class="n">1</span><span class="t">Instalar o pacote</span></div>
 <p>No Terminal, cole uma linha de cada vez e dê Enter:</p>
-<pre>claude plugin marketplace add sebemlabs-agents/elo-kit
-claude plugin install elo-kit@elo-kit</pre>
+<pre>claude plugin install elo-kit --marketplace sebemlabs-agents/elo-kit</pre>
+<p class="nota">Um comando só: ele registra o catálogo e instala. Precisa do Claude Code 2.1.292 ou mais novo — confira com <code>claude --version</code>. Em versão anterior, são dois: <code>claude plugin marketplace add sebemlabs-agents/elo-kit</code> e depois <code>claude plugin install elo-kit@elo-kit</code>.</p>
+<p class="nota">O menu <b>+ → Plugins → Add plugin</b> do aplicativo só mostra catálogos já registrados, então o primeiro registro é por comando mesmo. Uma vez só, nesta máquina.</p>
 <div class="ok"><strong>Deu certo quando:</strong> aparecer <em>"Successfully added marketplace"</em> e depois <em>"Successfully installed plugin"</em>.</div>
 <p class="nota">Se você usa o Codex em vez do Claude, os comandos são <code>codex plugin marketplace add sebemlabs-agents/elo-kit</code> e <code>codex plugin add elo-kit@elo-kit</code>.</p>
 
