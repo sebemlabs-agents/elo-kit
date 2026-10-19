@@ -19,7 +19,16 @@ leitura **antes de ela sair do seu computador**.
 
 ### 1. Instalar o pacote
 
-No **Claude Code**, um comando só — ele registra o catálogo e instala:
+**Pelo aplicativo, sem terminal** — é o caminho com menos atrito:
+
+1. **Configurações → Plugins**
+2. Botão **+ Adicionar**, no canto superior direito → **Adicionar marketplace**
+3. Escolher **Adicionar de um repositório** e colar:
+   `https://github.com/sebemlabs-agents/elo-kit`
+4. O `elo-kit` passa a aparecer na lista. Abrir e instalar, escolhendo o escopo
+   (**para você** serve: vale em qualquer pasta desta máquina).
+
+**Pelo terminal**, se preferir — um comando registra o catálogo e instala:
 
 ```bash
 claude plugin install elo-kit --marketplace sebemlabs-agents/elo-kit
@@ -32,11 +41,6 @@ dois comandos:
 claude plugin marketplace add sebemlabs-agents/elo-kit
 claude plugin install elo-kit@elo-kit
 ```
-
-**Pelo menu do app, sem terminal:** o botão **+** ao lado do campo de mensagem tem
-**Plugins → Add plugin**, mas ele só lista catálogos já registrados. Como este aqui é de
-terceiro, o primeiro registro é por comando — uma vez só, nesta máquina. Depois disso o
-pacote aparece no menu como qualquer outro.
 
 No **Codex**:
 
