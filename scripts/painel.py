@@ -259,9 +259,11 @@ def _main():
     if not dados:
         print("Nenhum arquivo de skill encontrado em %s." % pasta)
         print("Painel criado vazio em %s — rode uma skill e gere de novo." % alvo.name)
+        print("Abrir: %s" % alvo.resolve().as_uri())
         return 0
     nomes = ", ".join(d.get("skill", "?") for d in dados)
     print("Painel gerado: %s" % alvo)
+    print("Abrir: %s" % alvo.resolve().as_uri())
     print("Blocos: %s" % nomes)
     demo = [d.get("skill") for d in dados if d.get("fonte") == "demo"]
     if demo:

@@ -24,49 +24,93 @@ funcionais" (developers.mercadolivre.com.br).
 
 ## Passo a passo
 
-1. Acesse `https://developers.mercadolivre.com.br/devcenter` e faça login.
-2. Clique em **Criar aplicação** e preencha:
-   - **Nome** e **nome curto**: algo que ele reconheça depois, por exemplo
-     `painel da minha loja`.
-   - **Descrição**: por exemplo `leitura de pedidos e promoções para análise interna`.
-   - **Logo**: qualquer imagem.
-3. **URL de redirecionamento** — cadastre exatamente isto:
+### Antes: gerar a URL de retorno desta pessoa
 
-   ```
-   https://radar-meli.invalid/callback
-   ```
+**Faça isto antes de abrir o DevCenter.** Pergunte o nome da loja e rode:
 
-   Precisa ser `https`. O domínio `.invalid` é reservado e nunca abre — **é de propósito**:
-   depois de autorizar, o navegador mostra erro e o código de autorização fica só na barra de
-   endereço do próprio usuário, sem passar por servidor de ninguém.
+```
+python3 pasta.py --nome "Loja do Fulano"
+```
 
-   Se o DevCenter recusar esse endereço, use outro `https` qualquer que ele controle e ajuste
-   a linha `MELI_REDIRECT_URI` do `credenciais.txt` para ficar **idêntica, caractere por
-   caractere**.
+Ele grava em `credenciais.txt` a URL de retorno **dela**, por exemplo
+`https://loja-do-fulano.invalid/callback`, e imprime a mesma na tela.
 
-4. **PKCE**: ligado. Os scripts usam PKCE com S256.
-5. **Escopos**: comece com **somente leitura**, mais **acesso offline** se a tela oferecer —
-   é o acesso offline que permite a rotina diária funcionar sem pedir login de novo.
+Por que não uma URL igual para todo mundo: numa sala, URL idêntica em dezenas de telas é
+impossível de conferir — ninguém sabe se o que está no DevCenter é o que está no arquivo. Com
+o nome da loja dentro do endereço, a pessoa bate o olho e reconhece a dela.
 
-   Se depois da autorização o `autorizar.py` avisar que **não veio renovação automática**,
-   volte aqui e habilite leitura e escrita: em algumas contas o acesso offline só é liberado
-   junto. **Mesmo assim nada é alterado** — o `meli.py` recusa qualquer chamada que não seja
-   leitura antes de sair do computador. É essa a garantia, não o escopo.
+**E ninguém digita.** Ela copia do `credenciais.txt` e cola no DevCenter. Esta é a regra que
+mais importa deste arquivo: **digitação é o erro número um desta etapa**, e foi o que
+transformou um bloco de 75 minutos da edição anterior em atendimento um a um.
 
-6. **Permissões funcionais** — marque as quatro:
+Se a pessoa **já tem um domínio próprio** e prefere usar, pode: qualquer `https` serve, desde
+que fique idêntico nos dois lugares. O domínio não precisa — e não deve — receber nada: a
+página dando erro é o comportamento correto.
+
+### No DevCenter
+
+1. Acesse `https://developers.mercadolivre.com.br/devcenter` e faça login **com a conta
+   administradora**.
+2. **Criar aplicação.** Preencha:
+   - **Nome:** o que ela reconheça na lista daqui a seis meses. Sugira o padrão
+     `Painel <nome da loja>` — por exemplo `Painel Loja do Fulano`.
+   - **Nome curto:** o apelido que o `pasta.py` gerou, por exemplo `loja-do-fulano`. Fica
+     igual à URL de retorno, e isso faz a tela inteira conferir sozinha.
+   - **Descrição:** sugira `Leitura dos meus próprios dados de venda para análise interna.
+     Não publica, não altera anúncio nem preço.` — ela ajusta se quiser.
+   - **Logo:** qualquer imagem. Não influencia nada.
+
+   **Sugira, não imponha.** Se ela quiser outro nome, tudo bem; o que não pode variar é a URL
+   de retorno, que tem de ser idêntica ao arquivo.
+
+3. **URL de redirecionamento:** cole a que está no `credenciais.txt`. Nada de digitar.
+
+4. **Ligue, uma por uma** — e confira cada uma antes de salvar, porque faltar qualquer delas
+   só aparece como erro lá na frente, sem dizer o que faltou:
+
+   - [ ] **Authorization code** — é o fluxo que o pacote usa
+   - [ ] **Refresh token** — sem isto a conexão cai em poucas horas e pede login de novo
+   - [ ] **PKCE** — os scripts usam S256
+   - [ ] **API credentials / client credentials** — é o que libera o App ID e a chave secreta
+   - [ ] **Produto: Mercado Livre** — não Mercado Pago, não Mercado Envios
+   - [ ] **Escopos:** somente leitura (`read`) e **acesso offline** (`offline_access`)
+
+   > Os rótulos exatos dessa tela mudam de tempos em tempos. Se o que estiver na frente dela
+   > não bater com esta lista, vá pelo sentido — e **não siga com alguma delas em dúvida**:
+   > é mais barato conferir agora que depurar `403` depois.
+
+5. **Permissões funcionais** — marque as quatro:
    - Usuários (normalmente já vem ligada)
    - Publicação e sincronização — a lista de anúncios
    - Vendas e envios — os pedidos
    - Promoções, cupons e descontos
 
-   Faltar uma delas produz `HTTP 403 PA_UNAUTHORIZED_RESULT_FROM_POLICIES`, que **não diz qual
+   Faltar uma produz `HTTP 403 PA_UNAUTHORIZED_RESULT_FROM_POLICIES`, que **não diz qual
    faltou**. Por isso as quatro vão marcadas desde o começo.
 
-7. **Tópicos e notificações**: não precisa marcar nada. Se o formulário exigir uma URL de
-   notificações, pode usar o mesmo endereço `.invalid`.
-8. Salve. Na lista de aplicações, abra a sua e localize o **ID do aplicativo (client id)** e a
-   **chave secreta (client secret)**.
-9. O usuário copia esses dois valores para o `credenciais.txt`. **Não para o chat.**
+6. **Tópicos e notificações:** não precisa marcar nada. Se o formulário exigir uma URL,
+   use a mesma `.invalid`.
+
+7. **Salvar.**
+
+### Depois de salvar — a parte que surpreende todo mundo
+
+A pessoa **não** cai numa tela com App ID e chave secreta à mão. O caminho real é este, e
+avisar antes evita a sensação de que algo deu errado:
+
+1. Ela é **redirecionada para uma página do Mercado Livre**, não para o DevCenter.
+2. Para ver os valores, precisa **abrir a aplicação na lista e clicar em editar**.
+3. Nesse momento o Mercado Livre costuma **pedir o login de novo**. É normal; é a conta dela
+   mesma.
+4. A primeira tela pode mostrar **um erro de callback**. Também é esperado — é a `.invalid`
+   fazendo o trabalho dela. **Role até o fim da página e clique em continuar** para chegar nos
+   campos.
+5. Ali estão o **App ID (client id)** e a **chave secreta (client secret)**.
+
+Sempre que ela precisar ver os valores de novo, é esse mesmo caminho: lista → editar →
+login → continuar.
+
+8. Ela copia os dois valores para o `credenciais.txt`. **Não para o chat.**
 
 ---
 
@@ -77,7 +121,7 @@ Caso comum: o usuário já integra Bling, Olist, Tiny ou outro sistema, e já te
 **A regra é adicionar, nunca substituir.**
 
 1. Abra a aplicação existente no DevCenter.
-2. Na URL de redirecionamento, **acrescente** `https://radar-meli.invalid/callback` à lista,
+2. Na URL de redirecionamento, **acrescente** a URL que o `pasta.py` gerou para ela à lista,
    mantendo a que já está lá.
 3. Nas permissões funcionais, **marque as que faltam** das quatro acima, sem desmarcar nada.
 4. Pegue o App ID e o Client Secret dessa aplicação.

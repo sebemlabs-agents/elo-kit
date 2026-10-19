@@ -106,8 +106,10 @@ nomes. Depois rode:
 abaixo vai recusar — corretamente. Peça uma pasta na raiz do perfil, como
 `C:\Users\<nome>\elo-meli`, antes de copiar qualquer coisa.
 
+Pergunte **o nome da loja** antes de rodar — ele vira a URL de retorno própria dela:
+
 ```
-python3 pasta.py
+python3 pasta.py --nome "Loja do Fulano"
 ```
 
 Ele faz quatro coisas: **recusa a pasta se ela estiver dentro de Dropbox, iCloud, Google
@@ -150,8 +152,14 @@ Pergunte se o usuário já tem aplicação no DevCenter do Mercado Livre.
   existe" do mesmo arquivo. A regra é **adicionar** a URL de retorno e as permissões, nunca
   substituir — trocar a URL de um aplicativo em produção derruba a integração do ERP dele.
 
-Os três pontos que mais dão erro: a URL de redirecionamento idêntica à do `credenciais.txt`,
-o escopo de leitura, e as quatro permissões funcionais.
+Os três pontos que mais dão erro: a URL de redirecionamento idêntica à do `credenciais.txt`
+(**ela copia do arquivo, nunca digita**), os interruptores de authorization code, refresh
+token, PKCE e credenciais de API, e as quatro permissões funcionais.
+
+**Avise antes do que vem depois de salvar:** ela vai cair numa página do Mercado Livre, vai
+precisar abrir a aplicação e clicar em editar, logar de novo, e passar por uma tela de erro de
+callback clicando em continuar lá embaixo — só então aparecem App ID e chave secreta. Quem não
+é avisado acha que quebrou.
 
 ### 4. Preencher as credenciais (o usuário faz, fora do chat)
 
@@ -189,7 +197,12 @@ python3 painel.py
 ```
 
 Gera `painel.html` na pasta. Nesta etapa ele vem vazio, explicando que nenhuma skill rodou
-ainda — e isso é esperado. Abra com o usuário para ele ver onde os blocos vão aparecer.
+ainda — e isso é esperado.
+
+**Entregue o link no chat, clicável.** O script imprime uma linha `Abrir: file:///...` —
+repasse esse endereço para o usuário, para ele abrir com um clique. Ninguém deve ter de
+caçar arquivo dentro de pasta: é atrito gratuito, e numa sala de quarenta pessoas é
+atendimento um a um. Faça o mesmo toda vez que gerar o painel de novo.
 
 A partir daqui, qualquer skill `elo-*` que ele rodar grava um arquivo na pasta e aparece como
 um bloco no painel. **Skill ausente não é erro.**
@@ -258,6 +271,18 @@ uso, o aplicativo para se ficar 4 meses sem nenhuma chamada, e a autorização �
 a pessoa trocar a senha, renovar o Client Secret ou revogar a permissão.
 
 O que se promete é outra coisa: **quando cair, reconectar é um comando** — repetir a etapa 5.
+
+**Diga os três prazos em português, no recibo**, porque é o que tira o medo de "vou ter que
+refazer isso toda hora":
+
+- o acesso vale **6 horas** e **se renova sozinho**, sem login — é para isso que serve a
+  renovação automática que o `autorizar.py` confirma;
+- a renovação vale por **6 meses sem uso**; usando a rotina, ela não expira;
+- a aplicação dorme depois de **4 meses sem nenhuma chamada**.
+
+Se o `autorizar.py` disser que a renovação automática **não** ficou ligada, não siga como se
+estivesse tudo bem: volte ao DevCenter e confira o interruptor de refresh token e o acesso
+offline. Sem isso ela vai ter que refazer a autorização a cada poucas horas, e vai desistir.
 
 ## Comandos do dia a dia
 

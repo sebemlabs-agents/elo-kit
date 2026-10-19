@@ -396,3 +396,52 @@ def test_estado_aceita_known_marketplaces_aninhado(tmp_path):
     k.write_text(json.dumps({"marketplaces": {"elo-kit": {"autoUpdate": True}}}),
                  encoding="utf-8")
     assert atualizacao.estado(base) == "ligada"
+
+
+# ---------------------------------------------------- URL de retorno propria
+
+def test_apelido_tira_acento_e_simbolo():
+    assert pasta_mod.apelido("Açaí do João & Cia") == "acai-do-joao-cia"
+
+
+def test_apelido_nao_deixa_hifen_duplo_nem_nas_pontas():
+    a = pasta_mod.apelido("  --Loja   Sebem!!  ")
+    assert a == "loja-sebem"
+
+
+def test_apelido_recusa_nome_sem_letra_nem_numero():
+    with pytest.raises(ValueError):
+        pasta_mod.apelido(" --- ")
+
+
+def test_apelido_limita_o_tamanho():
+    assert len(pasta_mod.apelido("x" * 120)) <= 40
+
+
+def test_uri_sem_nome_usa_a_padrao():
+    assert pasta_mod.uri_de(None) == pasta_mod.URI_PADRAO
+
+
+def test_uri_com_nome_e_https_e_invalid():
+    u = pasta_mod.uri_de("Loja Sebem")
+    assert u == "https://loja-sebem.invalid/callback"
+    assert u.startswith("https://") and ".invalid/" in u
+
+
+def test_preparar_grava_a_uri_da_pessoa(tmp_path):
+    r = pasta_mod.preparar(tmp_path, nome="Loja Sebem")
+    texto = (tmp_path / "credenciais.txt").read_text(encoding="utf-8")
+    assert "MELI_REDIRECT_URI=https://loja-sebem.invalid/callback" in texto
+    assert r["uri"] == "https://loja-sebem.invalid/callback"
+
+
+def test_preparar_sem_nome_mantem_a_padrao(tmp_path):
+    pasta_mod.preparar(tmp_path)
+    texto = (tmp_path / "credenciais.txt").read_text(encoding="utf-8")
+    assert "MELI_REDIRECT_URI=%s" % pasta_mod.URI_PADRAO in texto
+
+
+def test_preparar_nunca_sobrescreve_credenciais_ja_preenchidas(tmp_path):
+    (tmp_path / "credenciais.txt").write_text("MELI_APP_ID=123\n", encoding="utf-8")
+    pasta_mod.preparar(tmp_path, nome="Outra Loja")
+    assert (tmp_path / "credenciais.txt").read_text(encoding="utf-8") == "MELI_APP_ID=123\n"

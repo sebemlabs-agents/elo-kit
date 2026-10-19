@@ -69,8 +69,38 @@ MELI_CLIENT_SECRET=
 #
 # Precisa ser IDENTICO ao "URL de redirecionamento" cadastrado na aplicacao.
 # .invalid e um dominio reservado que nunca abre: o code nao sai do seu navegador.
-MELI_REDIRECT_URI=https://radar-meli.invalid/callback
+MELI_REDIRECT_URI=%(uri)s
 """
+
+URI_PADRAO = "https://radar-meli.invalid/callback"
+
+
+def apelido(nome):
+    """Transforma o nome da loja num rotulo seguro para dominio.
+
+    Quem digita duas vezes erra uma. Por isso ninguem digita a URL: ela e
+    gerada aqui e a pessoa copia do arquivo para o DevCenter.
+    """
+    import re
+    import unicodedata
+
+    cru = unicodedata.normalize("NFKD", str(nome or ""))
+    cru = cru.encode("ascii", "ignore").decode("ascii").lower()
+    limpo = re.sub(r"[^a-z0-9]+", "-", cru).strip("-")
+    limpo = re.sub(r"-{2,}", "-", limpo)[:40].strip("-")
+    if not limpo or not limpo[0].isalnum():
+        raise ValueError(
+            "Nao consegui formar um apelido com '%s'. "
+            "Use letras e numeros, por exemplo o nome da loja." % nome
+        )
+    return limpo
+
+
+def uri_de(nome=None):
+    """Devolve a URL de retorno desta pessoa."""
+    if not nome:
+        return URI_PADRAO
+    return "https://%s.invalid/callback" % apelido(nome)
 
 
 class PastaSincronizada(RuntimeError):
@@ -104,18 +134,20 @@ def conferir(caminho=None):
     return True
 
 
-def preparar(caminho=None):
+def preparar(caminho=None, nome=None):
     """Confere a pasta e deixa os arquivos de apoio no lugar.
 
+    `nome` e o nome da loja: vira a URL de retorno propria da pessoa.
     Nunca sobrescreve credenciais.txt — quem ja preencheu nao perde nada."""
     pasta = Path(caminho or BASE)
     conferir(pasta)
     pasta.mkdir(parents=True, exist_ok=True)
+    uri = uri_de(nome)
 
     criados = []
     cred = pasta / "credenciais.txt"
     if not cred.exists():
-        cred.write_text(CREDENCIAIS_EXEMPLO, encoding="utf-8")
+        cred.write_text(CREDENCIAIS_EXEMPLO % {"uri": uri}, encoding="utf-8")
         criados.append(cred.name)
 
     gi = pasta / ".gitignore"
@@ -133,13 +165,23 @@ def preparar(caminho=None):
             except OSError:
                 pass
 
-    return {"pasta": str(pasta), "criados": criados, "protegidos": protegidos}
+    return {"pasta": str(pasta), "criados": criados, "protegidos": protegidos,
+            "uri": uri}
 
 
 def _main():
+    nome = None
+    args = sys.argv[1:]
+    if args and args[0] in ("-h", "--help"):
+        print(__doc__)
+        return 0
+    if "--nome" in args:
+        pos = args.index("--nome")
+        if pos + 1 < len(args):
+            nome = args[pos + 1]
     try:
-        r = preparar()
-    except PastaSincronizada as e:
+        r = preparar(nome=nome)
+    except (PastaSincronizada, ValueError) as e:
         print("PARADO: %s" % e)
         return 1
     print("Pasta pronta: %s" % r["pasta"])
@@ -147,8 +189,11 @@ def _main():
         print("Criados: %s" % ", ".join(r["criados"]))
     if r["protegidos"]:
         print("Permissao fechada em: %s" % ", ".join(r["protegidos"]))
-    print("\nProximo passo: abra credenciais.txt, preencha App ID e Client Secret, salve,")
-    print("e rode: python3 meli.py check")
+    print("\nURL de retorno desta pasta (copie do arquivo, nao digite):")
+    print("  %s" % r["uri"])
+    print("\nProximo passo: cadastre essa URL na aplicacao do DevCenter, depois abra")
+    print("credenciais.txt, preencha App ID e Client Secret, salve, e rode:")
+    print("  python3 meli.py check")
     return 0
 
 
