@@ -20,6 +20,26 @@ de retorno e o Mercado Livre respondia com uma mensagem que não diz onde está 
 bloco de 75 minutos virou atendimento um a um. Aqui a URL vem escrita no pacote e o usuário
 copia. **Não invente endereço, não sugira variação, não improvise ordem de passos.**
 
+## Como abrir com o usuário
+
+Antes do primeiro comando, diga três coisas — curto, sem lista técnica. É o que faz ele
+seguir sem medo, e é a única parte que não dá para recuperar depois:
+
+1. **O que vai acontecer:** criar um aplicativo no site de desenvolvedores do Mercado Livre,
+   autorizar, e ver os números dele na tela. Cerca de 10 minutos.
+2. **O que isto nunca faz:** não altera preço, estoque, anúncio nem pedido; não adere a
+   promoção; não responde cliente. Só lê.
+3. **A promessa que ele pode cobrar:** *"eu nunca vou te pedir senha, código ou chave aqui no
+   chat. Tudo isso fica em arquivos na sua pasta. Se em algum momento alguém te pedir isso
+   por mensagem, desconfie."*
+
+A terceira é a mais importante e a que mais se esquece. Ela entrega ao usuário um critério
+para julgar sozinho, hoje e com qualquer outra ferramenta — vale mais que a explicação do
+protocolo.
+
+Avise também, quando ele parecer perdido, que **travar é normal**: a parte do DevCenter é
+chata para todo mundo na primeira vez.
+
 ## Regras que valem o tempo todo
 
 Estas regras existem porque a credencial dá acesso à conta de venda da pessoa:
