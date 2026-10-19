@@ -31,6 +31,13 @@
     font-family: "SF Mono", Menlo, monospace; font-size: 9pt; line-height: 1.6;
     margin: 0 0 3mm; white-space: pre-wrap; page-break-inside: avoid;
   }
+  .telas { display: grid; gap: 4mm; margin: 0 0 3mm; }
+  .tela { border: .8pt solid #d3dad6; border-radius: 1.5mm; padding: 3mm 4mm; page-break-inside: avoid; }
+  .tela .fotos { display: grid; grid-template-columns: 1fr 1fr; gap: 3mm; align-items: start; }
+  .tela h4 { font-size: 9.5pt; margin: 0 0 1.5mm; color: #15485a; }
+  .tela img { width: 100%; height: auto; display: block; border: .6pt solid #e4e9e7; border-radius: 1mm; margin-bottom: 2mm; }
+  .tela p { font-size: 9pt; margin: 0 0 1.5mm; }
+  .tela p:last-child { margin-bottom: 0; }
   .promessa {
     border: 1.2pt solid #1f5f73; background: #f2f7f8; padding: 4mm 5mm;
     margin: 0 0 5mm; page-break-inside: avoid;
@@ -83,19 +90,37 @@
 
 <h2>Antes de começar — três coisas</h2>
 <ol>
-  <li><strong>Python instalado.</strong> Abra o Terminal (Mac) ou o Prompt de Comando (Windows), digite <code>python3 --version</code> e dê Enter. Se aparecer um número 3.8 ou maior, está pronto. Se disser que não encontrou, instale em <code>python.org/downloads</code> — no Windows, <strong>marque a caixa "Add to PATH"</strong> durante a instalação.</li>
+  <li><strong>Python instalado.</strong> No Mac, abra o Terminal e digite <code>python3 --version</code>. <strong>No Windows, abra o Prompt de Comando e digite <code>py -3 --version</code></strong> — ali <code>python3</code> quase nunca existe e costuma abrir a Loja da Microsoft. Se aparecer um número 3.8 ou maior, está pronto. Se não encontrar, instale em <code>python.org/downloads</code> marcando <strong>"Add python.exe to PATH"</strong> na primeira tela.</li>
   <li><strong>O login da conta administradora</strong> do Mercado Livre — aquela que enxerga o financeiro da loja. Conta de operador ou de colaborador não funciona: o próprio Mercado Livre recusa.</li>
-  <li><strong>Uma pasta nova</strong> no seu computador, só para isto. Pode se chamar <code>elo-meli</code> e ficar em Documentos. <strong>Não coloque dentro do Dropbox, do iCloud, do Google Drive nem do OneDrive</strong> — esses serviços copiam tudo para a nuvem, e a chave da sua conta não pode ir junto. O programa verifica isso e para, se for o caso.</li>
+  <li><strong>Uma pasta nova</strong> no seu computador, só para isto, chamada <code>elo-meli</code>. <strong>Não coloque dentro do Dropbox, do iCloud, do Google Drive nem do OneDrive</strong> — esses serviços copiam tudo para a nuvem, e a chave da sua conta não pode ir junto. O programa verifica isso e para, se for o caso.<br>No Mac, Documentos serve. <strong>No Windows, não use Documentos</strong>: ela quase sempre está dentro do OneDrive. Use <code>C:\Users\&lt;seu nome&gt;\elo-meli</code>.</li>
 </ol>
 
 <div class="passo"><span class="n">1</span><span class="t">Instalar o pacote</span></div>
-<p>No Terminal, cole uma linha de cada vez e dê Enter:</p>
 <p><b>Pelo aplicativo, sem terminal.</b> <b>Configurações → Plugins</b>, botão <b>+ Adicionar</b> no canto superior direito, <b>Adicionar marketplace</b>, e então <b>Adicionar de um repositório</b>. Cole:</p>
 <pre>sebemlabs-agents/elo-kit</pre>
 <p class="nota">Use essa forma curta, não a URL inteira do GitHub. Se a máquina já tiver o catálogo registrado, a URL completa é recusada como se fosse outra fonte.</p>
-<p class="nota">Depois disso o <b>elo-kit</b> aparece na lista de plugins. Abra, instale e escolha <b>para você</b> como escopo — vale em qualquer pasta desta máquina.</p>
+<p class="nota">Depois disso o <b>elo-kit</b> aparece na lista. <b>A tela de instalar tem duas versões</b>, dependendo da sua versão do aplicativo — as duas funcionam, e o resultado é o mesmo.</p>
+
+<div class="telas">
+  <div class="tela">
+    <h4>Versão A — com escolha de escopo</h4>
+    <div class="fotos"><img src="img/painel-a-lista.png" alt="Lista de plugins com o Elo kit e um botão Adicionar">
+    <img src="img/painel-a-escopo.png" alt="Menu aberto com três opções de onde instalar"></div>
+    <p>Clique em <b>Adicionar</b> e, no menu, escolha <b>Instalar para mim</b>.</p>
+    <p>É a opção que vale em qualquer pasta desta máquina. As outras duas prendem o plugin a um projeto só.</p>
+  </div>
+  <div class="tela">
+    <h4>Versão B — direto, sem menu</h4>
+    <div class="fotos"><img src="img/painel-b-diretorio.png" alt="Janela Diretório com a aba Code e o cartão do Elo kit">
+    <img src="img/painel-b-instalado.png" alt="O mesmo cartão depois de instalado, com ícone de engrenagem"></div>
+    <p>Na janela <b>Diretório</b>, vá na aba <b>Code</b> e clique no <b>+</b> do cartão. Não pergunta nada: instala para você.</p>
+    <p>Pronto quando o <b>+</b> virar uma <b>engrenagem</b> e aparecer o aviso <i>"Elo kit está instalado e pronto para uso"</i>.</p>
+  </div>
+</div>
+
+<p class="nota"><b>Importante nas duas:</b> a aba certa é a <b>Code</b>. O pacote roda comandos no seu computador, e isso só existe no Claude Code — não na conversa comum.</p>
 <p class="nota"><b>Se preferir o terminal:</b> <code>claude plugin install elo-kit --marketplace sebemlabs-agents/elo-kit</code> faz os dois passos de uma vez (precisa do Claude Code 2.1.292 ou mais novo; confira com <code>claude --version</code>).</p>
-<div class="ok"><strong>Deu certo quando:</strong> aparecer <em>"Successfully added marketplace"</em> e depois <em>"Successfully installed plugin"</em>.</div>
+<div class="ok"><strong>Deu certo quando:</strong> o <b>elo-kit</b> aparecer entre os seus plugins instalados. Pelo terminal, quando sair <em>"Successfully added marketplace"</em> e depois <em>"Successfully installed plugin"</em>.</div>
 <p class="nota">Se você usa o Codex em vez do Claude, os comandos são <code>codex plugin marketplace add sebemlabs-agents/elo-kit</code> e <code>codex plugin add elo-kit@elo-kit</code>.</p>
 
 <div class="passo"><span class="n">2</span><span class="t">Conectar a pasta</span></div>
