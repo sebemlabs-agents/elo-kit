@@ -8,7 +8,7 @@
     {
       "name": "elo-kit",
       "source": "./",
-      "description": "Lê sua conta do Mercado Livre e monta um painel local — só leitura, nada na sua conta é alterado. Novas skills entram no mesmo pacote e chegam na atualização, sem reinstalar. Hoje: conexão, painel e conteúdo de anúncio (funciona sem conexão).",
+      "description": "Lê sua conta do Mercado Livre e monta um painel local — só leitura, nada na sua conta é alterado. Novas skills entram no mesmo pacote e chegam na atualização, sem reinstalar. Hoje: conexão, promoções terminando, painel e conteúdo de anúncio.",
       "license": "MIT",
       "keywords": [
         "mercado-livre",

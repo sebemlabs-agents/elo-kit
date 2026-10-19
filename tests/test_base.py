@@ -2,6 +2,7 @@
 
 Rodar:  python3 -m pytest tests -q        (na raiz do repositorio)
 """
+import datetime as dt
 import json
 import sys
 import time
@@ -18,6 +19,7 @@ import criativos  # noqa: E402
 import painel  # noqa: E402
 import pasta as pasta_mod  # noqa: E402
 import atualizacao  # noqa: E402
+import promocoes  # noqa: E402
 
 
 CONTA = {"id": 123456789, "apelido": "LOJA EXEMPLO", "site": "MLB"}
@@ -482,3 +484,147 @@ def test_ausente_continua_dizendo_que_nao_veio():
 
 def test_zero_de_dinheiro_nao_vira_ausente():
     assert painel._valor(0.0, "valor") == "R$ 0,00"
+
+
+# ------------------------------------------------------------- elo-promocoes
+
+class _ApiFalsa:
+    """Responde no lugar do Mercado Livre. Registra o que foi pedido."""
+
+    def __init__(self, promocoes, itens_por_promocao=None):
+        self.promocoes = promocoes
+        self.itens = itens_por_promocao or {}
+        self.chamadas = []
+
+    def __call__(self, metodo, path, params=None):
+        self.chamadas.append((metodo, path, params))
+        assert metodo == "GET", "a skill nao pode fazer nada alem de GET"
+        if "/seller-promotions/users/" in path:
+            return {"results": self.promocoes}
+        if "/items" in path:
+            pid = path.split("/promotions/")[1].split("/")[0]
+            return {"results": self.itens.get(pid, []), "paging": {}}
+        raise AssertionError("endpoint inesperado: %s" % path)
+
+
+def _promo(pid, nome, dias, **extra):
+    fim = dt.datetime(2026, 10, 19, 12, 0, tzinfo=promocoes.FUSO) + dt.timedelta(days=dias)
+    d = {"id": pid, "name": nome, "type": "DEAL", "status": "started",
+         "finish_date": fim.isoformat()}
+    d.update(extra)
+    return d
+
+
+@pytest.fixture
+def api(monkeypatch):
+    def instalar(promos, itens=None):
+        falsa = _ApiFalsa(promos, itens)
+        monkeypatch.setattr(promocoes.meli, "request", falsa)
+        monkeypatch.setattr(promocoes.meli, "conta_conectada",
+                            lambda: {"id": 1, "apelido": "LOJA", "site": "MLB"})
+        return falsa
+    return instalar
+
+
+HOJE = dt.date(2026, 10, 19)
+
+
+def test_promocoes_so_traz_o_que_termina_na_janela(api):
+    api([_promo("a", "Acaba amanha", 1), _promo("b", "Acaba em 30", 30)])
+    d = promocoes.coletar(rapido=True, hoje=HOJE)
+    assert [i["promocao"] for i in d["itens"]] == ["Acaba amanha"]
+
+
+def test_promocoes_ignora_campanha_ja_encerrada(api):
+    api([_promo("a", "Ontem", -1)])
+    assert promocoes.coletar(rapido=True, hoje=HOJE)["itens"] == []
+
+
+def test_promocoes_ignora_status_que_nao_vale(api):
+    api([dict(_promo("a", "Cancelada", 2), status="finished")])
+    assert promocoes.coletar(rapido=True, hoje=HOJE)["itens"] == []
+
+
+def test_promocoes_sem_data_de_termino_vira_aviso(api):
+    api([dict(_promo("a", "Sem fim", 2), finish_date=None)])
+    d = promocoes.coletar(rapido=True, hoje=HOJE)
+    assert d["itens"] == []
+    assert any("sem data de término" in a for a in d["avisos"])
+
+
+def test_promocoes_ordena_pelo_que_termina_antes(api):
+    api([_promo("a", "Depois", 5), _promo("b", "Antes", 1)])
+    d = promocoes.coletar(rapido=True, hoje=HOJE)
+    assert [i["promocao"] for i in d["itens"]] == ["Antes", "Depois"]
+
+
+def test_promocoes_conta_anuncios_e_aderidos(api):
+    api([_promo("a", "Com itens", 2)],
+        {"a": [{"status": "started"}, {"status": "candidate"}, {"status": "started"}]})
+    d = promocoes.coletar(hoje=HOJE)
+    assert d["itens"][0]["anuncios_dentro"] == 3
+    assert d["itens"][0]["anuncios_aderidos"] == 2
+
+
+def test_promocoes_modo_rapido_declara_a_lacuna(api):
+    api([_promo("a", "X", 2)])
+    d = promocoes.coletar(rapido=True, hoje=HOJE)
+    assert d["itens"][0]["anuncios_dentro"] is None
+    assert "anuncios_dentro" in d["faltando"]
+    assert "anuncios_dentro" in d["lacunas"]
+
+
+def test_promocoes_modo_rapido_nao_chama_a_lista_de_itens(api):
+    falsa = api([_promo("a", "X", 2)])
+    promocoes.coletar(rapido=True, hoje=HOJE)
+    assert not any("/items" in c[1] for c in falsa.chamadas)
+
+
+def test_promocoes_percentual_ausente_nao_vira_zero(api):
+    api([dict(_promo("a", "Sem percentual", 2), fixed_percentage=None)])
+    d = promocoes.coletar(rapido=True, hoje=HOJE)
+    assert d["itens"][0]["desconto_minimo"] is None
+    assert "desconto_minimo" in d["faltando"]
+
+
+def test_promocoes_percentual_como_texto_vira_numero(api):
+    api([dict(_promo("a", "X", 2), fixed_percentage="15.5")])
+    d = promocoes.coletar(rapido=True, hoje=HOJE)
+    assert d["itens"][0]["desconto_minimo"] == 15.5
+
+
+def test_promocoes_sempre_declara_margem_e_renovacao_como_desconhecidas(api):
+    api([_promo("a", "X", 2)])
+    d = promocoes.coletar(rapido=True, hoje=HOJE)
+    assert "margem_apos_desconto" in d["faltando"]
+    assert "vai_ser_renovada" in d["faltando"]
+
+
+def test_promocoes_resumo_conta_as_que_apertam(api):
+    api([_promo("a", "Hoje", 0), _promo("b", "Em 3", 3), _promo("c", "Em 6", 6)])
+    d = promocoes.coletar(rapido=True, hoje=HOJE)
+    assert d["resumo"]["promocoes_na_janela"] == 3
+    assert d["resumo"]["termina_em_3_dias"] == 2
+
+
+def test_promocoes_janela_vazia_nao_e_erro(api):
+    api([])
+    d = promocoes.coletar(rapido=True, hoje=HOJE)
+    assert d["itens"] == [] and d["resumo"]["promocoes_na_janela"] == 0
+
+
+def test_promocoes_escopo_amplo_vira_aviso(api):
+    api([_promo("a", "Campanha ampla", 2)])
+    d = promocoes.coletar(rapido=True, hoje=HOJE)
+    assert any("escopo amplo" in a for a in d["avisos"])
+
+
+def test_promocoes_passa_no_contrato(api, tmp_path):
+    api([_promo("a", "X", 2)], {"a": [{"status": "started"}]})
+    d = promocoes.coletar(hoje=HOJE)
+    gravado = contrato.gravar("elo-promocoes", conta=d["conta"], periodo=d["periodo"],
+                              resumo=d["resumo"], itens=d["itens"],
+                              faltando=d["faltando"], lacunas=d["lacunas"],
+                              avisos=d["avisos"], pasta=tmp_path)
+    assert gravado["contrato"] == "1"
+    assert (tmp_path / "elo-promocoes.json").exists()
