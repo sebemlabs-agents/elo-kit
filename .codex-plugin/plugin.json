@@ -1,8 +1,10 @@
 {
   "name": "elo-kit",
   "version": "0.1.0",
-  "description": "Conecta a conta do Mercado Livre em somente leitura e transforma os dados em decisão: promoções terminando, dinheiro a receber, conteúdo de produto. Nada é alterado na sua conta.",
-  "author": { "name": "Elo" },
+  "description": "Lê sua conta do Mercado Livre e monta um painel local — só leitura, nada na sua conta é alterado. Hoje: conexão, painel e conteúdo de anúncio (este funciona sem conexão).",
+  "author": {
+    "name": "Elo"
+  },
   "license": "MIT",
   "skills": "./skills"
 }

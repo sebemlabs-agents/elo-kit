@@ -1,14 +1,23 @@
 {
   "name": "elo-kit",
-  "owner": { "name": "Elo" },
-  "description": "Pacote de skills que conecta a conta do Mercado Livre em somente leitura e transforma os dados em decisão.",
+  "owner": {
+    "name": "Elo"
+  },
+  "description": "Pacote de skills que lê a conta do Mercado Livre em somente leitura e monta um painel local na máquina do próprio vendedor.",
   "plugins": [
     {
       "name": "elo-kit",
       "source": "./",
-      "description": "Conecta a conta do Mercado Livre em somente leitura e monta o painel local: promoções terminando, dinheiro a receber, conteúdo de produto. Nada é alterado na sua conta.",
+      "description": "Lê sua conta do Mercado Livre e monta um painel local — só leitura, nada na sua conta é alterado. Hoje: conexão, painel e conteúdo de anúncio (este funciona sem conexão).",
       "license": "MIT",
-      "keywords": ["mercado-livre", "marketplace", "ecommerce", "somente-leitura", "painel"]
+      "keywords": [
+        "mercado-livre",
+        "marketplace",
+        "ecommerce",
+        "somente-leitura",
+        "painel"
+      ],
+      "displayName": "Elo Kit"
     }
   ]
 }
