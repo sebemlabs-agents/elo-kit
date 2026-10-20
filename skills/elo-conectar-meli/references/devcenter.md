@@ -128,13 +128,20 @@ Caso comum: o usuário já integra Bling, Olist, Tiny ou outro sistema, e já te
 
 **Se a tela não permitir mais de uma URL de redirecionamento, pare.** Trocar a URL de uma
 aplicação que sustenta o ERP dele derruba a integração em produção, no meio de uma conversa.
-Nesse caso: ou ele cria uma aplicação nova, ou vai para o modo demonstração e resolve depois,
-com calma, fora do horário de operação.
 
-Observação sobre o limite de aplicações por titular: há material afirmando que no Brasil cada
-titular cria apenas uma, e há prática indicando que dá para criar várias. **Não afirme nenhuma
-das duas.** Peça para ele olhar a lista de aplicações da conta dele — a resposta está na tela.
-Se não der para criar outra, o caminho é o de reaproveitamento acima.
+Nesse caso a saída é simples: **crie uma aplicação nova.** Não há limite de uma por titular, e
+uma aplicação nova não encosta na que já existe.
+
+Sobre o limite de aplicações por titular: **não existe limite de uma.** Verificado em
+20/10/2026 numa conta de vendedor brasileira com **três aplicações** criadas ao mesmo tempo.
+
+Isso importa em dois momentos. Quem já tem aplicação de ERP **não precisa** mexer nela: pode
+criar uma nova só para isto, e a integração em produção dele fica intocada — é o caminho mais
+seguro e deve ser o primeiro que você oferece. E quem errar na criação pode simplesmente criar
+outra, em vez de tentar consertar a que ficou torta.
+
+O reaproveitamento descrito acima continua valendo para quem **preferir** usar a aplicação que
+já tem, mas deixou de ser a única saída.
 
 ---
 

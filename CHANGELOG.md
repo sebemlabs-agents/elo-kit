@@ -49,3 +49,7 @@ Este arquivo existe para contar o que mudou, não para controlar entrega.
   custo e imposto. Componente ausente não vira zero — a linha fica sem margem e diz qual
   faltou; zero declarado é diferente de vazio. Média ponderada pelo preço, e os negativos
   aparecem primeiro.
+- **Pendência resolvida:** não existe limite de uma aplicação por titular no DevCenter.
+  Verificado em conta de vendedor brasileira com três aplicações simultâneas. Quem já tem
+  aplicação de ERP passa a ter o caminho seguro como primeira opção: criar uma nova, sem
+  encostar na que sustenta a integração em produção.
