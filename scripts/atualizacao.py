@@ -30,8 +30,12 @@ def pasta_config():
     base = Path(bruto).expanduser() if bruto else Path.home() / ".claude"
     if not base.is_dir():
         raise SemClaude(
-            "Nao achei a pasta de configuracao do Claude em %s. "
-            "O Claude Code ja foi aberto nesta maquina?" % base
+            "Nao achei a pasta de configuracao do Claude em %s.\n"
+            "Se voce usa o Codex, nao e erro: atualizacao automatica e so do "
+            "Claude. No Codex a atualizacao e manual, com\n"
+            "  codex plugin marketplace upgrade\n"
+            "Se voce usa o Claude, o Claude Code ja foi aberto nesta maquina?"
+            % base
         )
     return base
 

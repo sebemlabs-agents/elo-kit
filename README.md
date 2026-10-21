@@ -3,7 +3,9 @@
 Pacote de skills que conecta a sua conta do Mercado Livre **em somente leitura** e transforma
 os dados em decisão: promoções terminando, dinheiro a receber, conteúdo de produto e mais.
 
-Funciona no **Claude** e no **Codex**, instalado com um comando.
+Feito para o **Claude**, instalado com um comando ou pelo menu. **Roda no Codex também** —
+com duas diferenças: lá não existe menu, e a atualização é manual
+(`codex plugin marketplace upgrade`). A automática é só do Claude.
 
 ## O que este pacote nunca faz
 

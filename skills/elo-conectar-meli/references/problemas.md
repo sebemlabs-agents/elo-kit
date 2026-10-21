@@ -31,6 +31,7 @@ tente adivinhar — errar o diagnóstico custa mais que admitir.
 | Demorou e parou (timeout) | rede lenta ou Mercado Livre fora do ar | tente uma vez mais antes de qualquer conclusão |
 | `winget` não existe nesta máquina | Windows 10 mais antigo, LTSC ou sem a Loja | **não é erro dela.** Plano B da etapa 0.2: ela baixa de `python.org/downloads`, versão 3.12, marcando **"Add python.exe to PATH"** na primeira tela e usando **"Install Now"** (não pede senha de administrador). Windows em ARM precisa da linha **arm64**, não do botão grande |
 | Instalou pelo site e o comando continua não existindo | a caixa "Add python.exe to PATH" não foi marcada | reabrir o instalador, escolher **Modify** e marcar. Ou use o caminho absoluto da etapa 0.3 |
+| `atualizacao.py` diz que não achou a pasta de configuração do Claude | a pessoa está no **Codex**, não no Claude | não é erro dela e não tem conserto: atualização automática é só do Claude. No Codex a atualização é manual — `codex plugin marketplace upgrade`. Diga isso e siga |
 
 ## Três coisas que não são erro
 
