@@ -65,22 +65,27 @@ Estas regras existem porque a credencial dá acesso à conta de venda da pessoa:
 
 ## Onde os comandos rodam
 
-Os scripts precisam ficar numa **pasta do computador do usuário conectada ao Claude**, e
-rodar num shell que veja essa pasta. Se nenhuma pasta estiver conectada, peça para ele criar
-uma pasta nova — sugestão: `elo-meli` — e conectá-la. Use uma pasta só para isto; não misture
-com outros arquivos.
+Os scripts ficam numa pasta do computador dela conectada ao Claude, e os comandos rodam de
+dentro dela. **Quem escolhe o lugar e cria a pasta é você, na etapa 0** — não peça para ela
+criar nem escolher, porque o lugar errado (dentro de um serviço de sincronização) manda o
+token da conta de venda para a nuvem sem ela perceber.
 
-Todos os comandos abaixo rodam de dentro dessa pasta.
+Use uma pasta só para isto; não misture com outros arquivos.
 
 ---
 
 ## Instalação — siga em ordem, confirmando cada etapa
 
-### 0. Descobrir como o Python se chama nesta máquina
+### 0. Preparar a máquina — você executa, ela não digita
 
-Antes de qualquer outro comando. **No Windows `python3` quase nunca existe** — costuma ser
-`py -3`, e às vezes `python`. Teste nesta ordem e **pare no primeiro que responder 3.8 ou
-mais novo**:
+**Esta etapa é uma tabela fixa. Siga na ordem, use o comando exato, não invente
+variação e não pule.** O aluno não digita nada aqui: quem roda é você. Quando a tabela
+não cobre o que apareceu na tela, isso é "causa não determinada" (ver o fim desta
+etapa) — nunca palpite.
+
+#### 0.1 Achar o Python
+
+Teste **nesta ordem** e **pare no primeiro que responder 3.8 ou mais novo**:
 
 ```
 python3 --version
@@ -88,14 +93,82 @@ py -3 --version
 python --version
 ```
 
-Daqui em diante, **use sempre o que funcionou**, em todos os comandos desta skill. Neste
-arquivo está escrito `python3`; troque pelo da máquina dele.
+**Daqui em diante use sempre o que funcionou**, em todos os comandos desta skill. Neste
+arquivo está escrito `python3`; troque pelo da máquina dela.
 
-Se nenhum responder, ou se vier 3.7 ou anterior: **diga isso com calma e resolva junto.** O
-guia que ele recebeu promete que você avisa e manda o link, então entregue exatamente isso —
-`python.org/downloads`, e **no Windows marcar "Add python.exe to PATH" na primeira tela do
-instalador**, que é o passo que mais gente pula. Depois que ele instalar, repita o teste e
-siga. Não trate como erro dele; é só um pré-requisito que faltava.
+Achou um válido? Pule para 0.3.
+
+Se vier **3.7 ou anterior**: não tente rodar o pacote. O pacote aceita **3.8 ou mais
+novo** e, quando precisa instalar de zero, instala a **3.12**. Diga que a versão é antiga,
+sem tratar como erro dela, e siga para 0.2 como se não existisse.
+
+#### 0.2 Instalar, com autorização antes do primeiro efeito
+
+**Pergunte antes de instalar qualquer coisa.** Diga, em uma frase: que vai instalar o
+Python, **de onde**, que é só para a conta dela, e que **isso altera o PATH da máquina**.
+Ela aprova ou recusa. **Recusou, siga para 0.6** — sem insistir, sem repetir o pedido.
+
+Com o sim, o comando é um só, por sistema:
+
+| Sistema | Comando |
+|---|---|
+| **Windows** | `winget install --id Python.Python.3.12 --scope user --accept-package-agreements --accept-source-agreements` |
+| **macOS** | normalmente já vem. Se não veio, mande o instalador oficial de `python.org/downloads` e ela abre com dois cliques |
+
+**Nunca** peça senha de administrador, **nunca** use instalador alternativo, **nunca**
+oriente a desligar antivírus, controle de aplicativo ou qualquer proteção, e **nunca**
+tente outro canal quando um for bloqueado. Se o caminho exige qualquer uma dessas
+coisas, é 0.6.
+
+#### 0.3 Achar o Python recém-instalado (o passo que todo mundo erra)
+
+**No Windows, o PATH novo não vale para um terminal que já estava aberto.** O comando
+vai continuar dizendo que não existe, e isso não significa que a instalação falhou.
+
+Não reinicie nada e não peça para ela fechar o Claude. Procure pelo caminho absoluto:
+
+```
+py -3 --version
+%LOCALAPPDATA%\Programs\Python\Python312\python.exe --version
+```
+
+Se o segundo responder, **use o caminho absoluto dele em todos os comandos seguintes**.
+
+#### 0.4 Criar a pasta no lugar certo
+
+Você escolhe o lugar, não ela. **Pergunte o nome da loja** (vira a URL de retorno) e crie:
+
+| Sistema | Pasta |
+|---|---|
+| **Windows** | `C:\Users\<nome>\elo-meli` |
+| **macOS** | `~/elo-meli` |
+
+**No Windows não use `Documentos`**: ela costuma estar dentro do OneDrive, e o pacote vai
+recusar — corretamente, porque o token da conta de venda dela não pode ir para a nuvem.
+
+#### 0.5 Conectar a pasta ao Claude
+
+Este é o único passo da etapa 0 que depende dela, e é **um clique, não um comando**: o
+Claude precisa de acesso à pasta para rodar os scripts. Peça a permissão e espere ela
+aprovar.
+
+#### 0.6 Quando não deu — três saídas, decididas pelo que você viu
+
+**Nunca culpe o TI dela sem prova, e nunca peça ajuda a quem não pode ajudar.**
+
+| O que apareceu na tela | O que é | O que fazer |
+|---|---|---|
+| Uma janela aberta esperando confirmação, ou instalação em andamento | **ação dela** | peça **uma vez**, dizendo o clique exato |
+| Negativa explícita de permissão de administrador, ou bloqueio nomeado por política da empresa | **depende do TI dela** | siga para o modo demonstração (etapa 7) dizendo que depende do administrador |
+| **Qualquer outra coisa** | **causa não determinada** | siga para o modo demonstração dizendo apenas *"não deu para instalar aqui"* — sem atribuir a ninguém |
+
+**Pediu ajuda uma vez e não resolveu → modo demonstração.** Uma tentativa, uma ação
+concreta, e segue. **Não abra uma segunda rodada de conserto de Python.** Numa sala com
+muita gente, insistir num caso trava o monitor e para a fila inteira — foi o que aconteceu
+na edição anterior, com outro assunto.
+
+Antes de seguir para a demonstração, **deixe a volta marcada** (etapa 7): o que faltou fica
+registrado, e conectar depois é retomar, não começar de novo.
 
 ### 1. Preparar a pasta (e a verificação que mais importa)
 

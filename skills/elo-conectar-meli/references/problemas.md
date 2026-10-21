@@ -6,7 +6,7 @@ tente adivinhar — errar o diagnóstico custa mais que admitir.
 | Sintoma | Causa provável | O que fazer |
 |---|---|---|
 | `python3 pasta.py` para dizendo que a pasta sincroniza | a pasta está dentro de Dropbox, iCloud, Google Drive ou OneDrive | **não contorne.** Peça uma pasta fora do serviço de sincronização e comece ali. O token não pode ir para a nuvem sem o usuário saber |
-| Toda chamada falha antes de chegar ao Mercado Livre, ou erro de rede/proxy | `api.mercadolibre.com` não está nos domínios permitidos do Claude | Configurações → Capabilities → domínios permitidos. Em conta de empresa, só o administrador libera. Teste: `curl -s -D - -o /dev/null https://api.mercadolibre.com/ \| grep -ci x-request-id` — `1` = chegou, `0` = bloqueado antes |
+| Toda chamada falha antes de chegar ao Mercado Livre, ou erro de rede/proxy | `api.mercadolibre.com` não está nos domínios permitidos do Claude | Configurações → Capabilities → domínios permitidos. Em conta de empresa, só o administrador libera. Teste: o mesmo da etapa 2 da skill (uma linha de Python) — `curl` e `grep` nao existem no Windows por padrao. **Qualquer `ok` serve, inclusive `ok 403`**; o que reprova e erro de rede, DNS ou certificado |
 | `Faltam valores em credenciais.txt` | arquivo não preenchido ou não salvo | `python3 meli.py check` mostra o que está vazio sem revelar valor. Peça para abrir, preencher e salvar |
 | Erro de autorização citando `redirect_uri` | endereço diferente do cadastrado | a linha `MELI_REDIRECT_URI` precisa ser idêntica à do DevCenter, caractere por caractere |
 | `O state nao confere` | a URL colada é de outra tentativa | rode `python3 autorizar.py` de novo e use a URL nova |
@@ -19,8 +19,13 @@ tente adivinhar — errar o diagnóstico custa mais que admitir.
 | `429` | muitas chamadas seguidas | espere alguns segundos. Numa sala com muita gente na mesma rede isso é esperado: siga o combinado de todo mundo na mesma tela, comando só no ok |
 | A conexão cai algumas horas depois de funcionar | duas cópias usando a mesma credencial | o refresh token é de uso único. Não copie `tokens.json` para outra máquina nem rode a mesma credencial em dois lugares |
 | Não consegue apagar `RETORNO.txt` | o ambiente só apaga com permissão do usuário | o `autorizar.py` esvazia o arquivo; avise que ele pode apagar quando quiser |
-| `python3` não existe ou é versão antiga | Python não instalado, ou 3.7 e anterior | o pacote precisa de 3.8 ou mais novo. No Mac normalmente já vem; no Windows, instale do site oficial marcando "Add to PATH" |
+| `python3` não existe ou é versão antiga | Python não instalado, ou 3.8 e anterior | **etapa 0 da skill** — você instala, ela não digita. Pergunte antes, porque altera o PATH |
 | Tudo funciona, mas o apelido em `meli.py me` não é a loja dele | autorizou a conta errada | refaça a etapa 5 logado na conta certa |
+| Instalou e o comando continua dizendo que não existe (Windows) | o PATH novo não vale para terminal já aberto | **não é falha de instalação.** Etapa 0.3: procure pelo caminho absoluto em `%LOCALAPPDATA%\Programs\Python\Python312\python.exe` e use ele daqui em diante |
+| A instalação para citando permissão de administrador, ou um bloqueio nomeado por política | a máquina é gerida pela empresa dela | depende do administrador. Modo demonstração (etapa 7), com a volta marcada. **Não** oriente a desligar proteção nem a trocar de canal |
+| A instalação falha e a mensagem não diz por quê | **causa não determinada** | modo demonstração dizendo só "não deu para instalar aqui". **Não atribua ao TI sem prova** |
+| A pessoa recusa a instalação | decisão dela | modo demonstração, sem insistir e sem repetir o pedido |
+| `pasta.py` avisa que não conseguiu fechar a permissão de um arquivo | o sistema não aplica restrição de leitura por arquivo (acontece no Windows) | **não é erro e não bloqueia.** Os arquivos seguem só na máquina dela e o pacote não envia nada para fora; o que não dá para prometer é que outro usuário da mesma máquina não consiga abrir o arquivo. Diga isso com essas palavras |
 
 ## Três coisas que não são erro
 

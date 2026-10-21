@@ -45,6 +45,17 @@ ARQUIVOS_SENSIVEIS = (
     "RETORNO.txt",
 )
 
+# Conjunto FECHADO de motivos. O relato nunca carrega texto de excecao nem
+# saida de comando: so um destes codigos, para nao vazar nada por acidente.
+MOTIVOS_SEM_PROTECAO = {
+    "sistema_ignora_permissao":
+        "este sistema nao aplica a restricao de leitura por arquivo "
+        "(acontece no Windows)",
+    "sem_permissao_para_mudar":
+        "o sistema nao deixou mudar a permissao deste arquivo",
+}
+
+
 GITIGNORE = """credenciais.txt
 .env
 tokens.json
@@ -134,6 +145,17 @@ def conferir(caminho=None):
     return True
 
 
+def fechado(arquivo):
+    """Diz se o arquivo esta de fato fora do alcance de grupo e de outros.
+
+    Mede o resultado em vez de confiar no chmod: e a unica forma de o relato
+    ser verdadeiro nos dois sistemas."""
+    try:
+        return os.stat(arquivo).st_mode & 0o077 == 0
+    except OSError:
+        return False
+
+
 def preparar(caminho=None, nome=None):
     """Confere a pasta e deixa os arquivos de apoio no lugar.
 
@@ -156,17 +178,28 @@ def preparar(caminho=None, nome=None):
         criados.append(gi.name)
 
     protegidos = []
+    nao_protegidos = []
     for nome in ARQUIVOS_SENSIVEIS:
         alvo = pasta / nome
-        if alvo.exists():
-            try:
-                os.chmod(alvo, 0o600)
-                protegidos.append(nome)
-            except OSError:
-                pass
+        if not alvo.exists():
+            continue
+        try:
+            os.chmod(alvo, 0o600)
+        except OSError:
+            nao_protegidos.append({"arquivo": nome,
+                                   "motivo": "sem_permissao_para_mudar"})
+            continue
+        # Nao basta o chmod nao dar erro. No Windows ele honra so o atributo de
+        # somente-leitura e ignora o resto em silencio. Entao conferimos o que
+        # ficou de fato: nenhum bit de grupo nem de outros.
+        if fechado(alvo):
+            protegidos.append(nome)
+        else:
+            nao_protegidos.append({"arquivo": nome,
+                                   "motivo": "sistema_ignora_permissao"})
 
     return {"pasta": str(pasta), "criados": criados, "protegidos": protegidos,
-            "uri": uri}
+            "nao_protegidos": nao_protegidos, "uri": uri}
 
 
 def _main():
@@ -189,6 +222,13 @@ def _main():
         print("Criados: %s" % ", ".join(r["criados"]))
     if r["protegidos"]:
         print("Permissao fechada em: %s" % ", ".join(r["protegidos"]))
+    for item in r["nao_protegidos"]:
+        print("ATENCAO: nao foi possivel fechar a permissao de %s — %s"
+              % (item["arquivo"], MOTIVOS_SEM_PROTECAO[item["motivo"]]))
+    if r["nao_protegidos"]:
+        print("Os arquivos seguem nesta pasta e o pacote nao envia nada para")
+        print("fora. O que nao da para prometer e que outro usuario desta")
+        print("maquina nao consiga abrir o arquivo.")
     print("\nURL de retorno desta pasta (copie do arquivo, nao digite):")
     print("  %s" % r["uri"])
     print("\nProximo passo: cadastre essa URL na aplicacao do DevCenter, depois abra")
