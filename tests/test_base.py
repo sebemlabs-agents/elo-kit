@@ -4,6 +4,7 @@ Rodar:  python3 -m pytest tests -q        (na raiz do repositorio)
 """
 import datetime as dt
 import json
+import os
 import sys
 import time
 from pathlib import Path
@@ -175,6 +176,35 @@ def test_arquivo_ausente_nao_vira_relato(tmp_path):
     r = pasta_mod.preparar(tmp_path)
     assert "tokens.json" not in _lista(r, "nao_protegidos")
     assert "tokens.json" not in _lista(r, "protegidos")
+
+
+def test_protegidos_nao_passa_vazio(tmp_path):
+    """Controle positivo: em sistema POSIX a restricao tem de funcionar de fato.
+
+    Sem isto o teste de coerencia passaria com a lista vazia, validando nada."""
+    if os.name != "posix":
+        pytest.skip("controle positivo so vale onde o modo POSIX e aplicado")
+    (tmp_path / "credenciais.txt").write_text("MELI_APP_ID=\n", encoding="utf-8")
+    r = pasta_mod.preparar(tmp_path)
+    assert "credenciais.txt" in _lista(r, "protegidos")
+    assert not r["nao_protegidos"]
+
+
+def test_relato_cobre_a_pasta_e_nao_so_os_arquivos(tmp_path):
+    """Arquivo fechado dentro de pasta aberta nao protege nada."""
+    r = pasta_mod.preparar(tmp_path)
+    assert "pasta_fechada" in r
+
+
+def test_salvar_tokens_relata_quando_nao_pudo_proteger(tmp_path, monkeypatch):
+    """tokens.json e gravado depois do pasta.py — a verificacao tem de ir junto."""
+    monkeypatch.setattr(meli, "TOKENS_FILE", tmp_path / "tokens.json")
+    monkeypatch.setattr(meli.os, "chmod", lambda *a, **k: None)
+    r = meli.salvar_tokens({"access_token": "x", "refresh_token": "y",
+                            "expires_in": 21600, "user_id": 123})
+    assert r is not None, "salvar_tokens tem de relatar o resultado da protecao"
+    assert r.get("protegido") is False
+    assert r.get("motivo") in pasta_mod.MOTIVOS_SEM_PROTECAO
 
 
 def test_gitignore_cobre_os_arquivos_sensiveis(tmp_path):

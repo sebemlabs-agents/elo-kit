@@ -48,9 +48,13 @@ ARQUIVOS_SENSIVEIS = (
 # Conjunto FECHADO de motivos. O relato nunca carrega texto de excecao nem
 # saida de comando: so um destes codigos, para nao vazar nada por acidente.
 MOTIVOS_SEM_PROTECAO = {
-    "sistema_ignora_permissao":
-        "este sistema nao aplica a restricao de leitura por arquivo "
-        "(acontece no Windows)",
+    # Dizer "este sistema nao protege" seria falso: o Windows protege, por DACL,
+    # que nao e o que o modo POSIX descreve e nao e o que conseguimos ler aqui.
+    # O que podemos afirmar e so isto: nao foi verificado.
+    "nao_verificado_neste_sistema":
+        "o pacote nao conseguiu confirmar a restricao de leitura neste sistema "
+        "(no Windows a permissao e controlada por outro mecanismo, que o pacote "
+        "ainda nao le)",
     "sem_permissao_para_mudar":
         "o sistema nao deixou mudar a permissao deste arquivo",
 }
@@ -196,10 +200,16 @@ def preparar(caminho=None, nome=None):
             protegidos.append(nome)
         else:
             nao_protegidos.append({"arquivo": nome,
-                                   "motivo": "sistema_ignora_permissao"})
+                                   "motivo": "nao_verificado_neste_sistema"})
+
+    try:
+        os.chmod(pasta, 0o700)
+    except OSError:
+        pass
 
     return {"pasta": str(pasta), "criados": criados, "protegidos": protegidos,
-            "nao_protegidos": nao_protegidos, "uri": uri}
+            "nao_protegidos": nao_protegidos, "pasta_fechada": fechado(pasta),
+            "uri": uri}
 
 
 def _main():
@@ -228,7 +238,10 @@ def _main():
     if r["nao_protegidos"]:
         print("Os arquivos seguem nesta pasta e o pacote nao envia nada para")
         print("fora. O que nao da para prometer e que outro usuario desta")
-        print("maquina nao consiga abrir o arquivo.")
+        print("maquina nao consiga abrir o arquivo — isso o pacote nao verificou.")
+    if not r["pasta_fechada"]:
+        print("ATENCAO: nao foi possivel confirmar a restricao de leitura da")
+        print("propria pasta. Arquivo fechado dentro de pasta aberta nao protege.")
     print("\nURL de retorno desta pasta (copie do arquivo, nao digite):")
     print("  %s" % r["uri"])
     print("\nProximo passo: cadastre essa URL na aplicacao do DevCenter, depois abra")

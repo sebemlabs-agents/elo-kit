@@ -192,6 +192,13 @@ def _main():
     t, limpeza = concluir(args[1])
     print("\nConectado. Acesso salvo em tokens.json (conteudo nao mostrado).")
     print("  conta  : %s" % t["user_id"])
+    if t.get("protegido") is False:
+        print("  ATENCAO: nao foi possivel confirmar a restricao de leitura do")
+        print("           tokens.json — %s"
+              % pasta_mod.MOTIVOS_SEM_PROTECAO[t["motivo"]])
+        print("           O arquivo fica so nesta maquina e o pacote nao envia")
+        print("           nada para fora; o que nao da para prometer e que outro")
+        print("           usuario desta maquina nao consiga abrir o arquivo.")
     print("  retorno: %s" % limpeza)
     if not t.get("refresh_token"):
         print("\n  ATENCAO: o Mercado Livre nao devolveu renovacao automatica.")
