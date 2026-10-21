@@ -122,7 +122,18 @@
 <p class="nota"><b>Importante nas duas:</b> a aba certa é a <b>Code</b>. O pacote roda comandos no seu computador, e isso só existe no Claude Code — não na conversa comum.</p>
 <p class="nota"><b>Se preferir o terminal:</b> <code>claude plugin install elo-kit --marketplace sebemlabs-agents/elo-kit</code> faz os dois passos de uma vez (precisa do Claude Code 2.1.292 ou mais novo; confira com <code>claude --version</code>).</p>
 <div class="ok"><strong>Deu certo quando:</strong> o <b>elo-kit</b> aparecer entre os seus plugins instalados. Pelo terminal, quando sair <em>"Successfully added marketplace"</em> e depois <em>"Successfully installed plugin"</em>.</div>
-<p class="nota">Se você usa o Codex em vez do Claude, os comandos são <code>codex plugin marketplace add sebemlabs-agents/elo-kit</code> e <code>codex plugin add elo-kit@elo-kit</code>.</p>
+<div class="tela" style="margin-top:4mm">
+  <h4>Se você usa o Codex em vez do Claude</h4>
+  <p>Dá para instalar, mas <strong>nem tudo é igual</strong> — vale saber antes de escolher por onde ir.</p>
+  <p><strong>Funciona:</strong> instalar e rodar as skills. Os programas do pacote não dependem do Claude; a conexão com o Mercado Livre é a mesma e continua sendo só leitura.</p>
+  <p><strong>Muda:</strong> não existe o caminho pelo menu — é por comando:<br>
+     <code>codex plugin marketplace add sebemlabs-agents/elo-kit</code><br>
+     <code>codex plugin add elo-kit@elo-kit</code></p>
+  <p><strong>Não funciona:</strong> a atualização automática. Lá ela não existe, e pedir "liga a atualização automática" vai dar erro — o pacote procura uma pasta de configuração que é do Claude. Para receber as novidades, rode de vez em quando:<br>
+     <code>codex plugin marketplace upgrade</code></p>
+  <p><strong>Não testamos:</strong> o resto deste guia foi escrito e testado no Claude. As telas que ele cita — menu de plugins, pasta conectada, domínios permitidos — são de lá. No Codex o caminho existe, mas você vai estar abrindo trilha.</p>
+  <p class="nota" style="margin-bottom:0"><strong>Recomendação:</strong> se esta é a sua primeira vez, vá de Claude. Volte para o Codex depois, com a conta já conectada e funcionando.</p>
+</div>
 
 <div class="passo"><span class="n">2</span><span class="t">Conectar a pasta</span></div>
 <p>Abra o Claude e conecte a pasta que você criou no passo anterior. É ali que tudo vai morar: os arquivos, o painel e a chave de acesso.</p>
