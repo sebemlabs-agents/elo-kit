@@ -121,6 +121,62 @@ def test_preparar_cria_apoio_e_nunca_sobrescreve_credenciais(tmp_path):
     assert "credenciais.txt" not in r["criados"]
 
 
+# ------------------------------------------ permissao: so prometer o verificado
+#
+# No Windows o os.chmod do Python honra apenas o atributo de somente-leitura e
+# ignora o resto em silencio, sem levantar erro. O pacote imprimia "Permissao
+# fechada em: ..." numa maquina onde nada tinha sido fechado. Estes testes
+# existem para que o relato seja medido, nunca presumido.
+
+def _lista(r, chave):
+    return [i["arquivo"] if isinstance(i, dict) else i for i in r.get(chave, [])]
+
+
+def test_so_lista_como_protegido_o_que_de_fato_esta_fechado(tmp_path):
+    (tmp_path / "credenciais.txt").write_text("MELI_APP_ID=\n", encoding="utf-8")
+    (tmp_path / "tokens.json").write_text("{}", encoding="utf-8")
+    r = pasta_mod.preparar(tmp_path)
+    for nome in _lista(r, "protegidos"):
+        modo = (tmp_path / nome).stat().st_mode
+        assert modo & 0o077 == 0, "%s foi dado como protegido sem estar" % nome
+
+
+def test_arquivo_que_nao_pudo_ser_fechado_entra_em_nao_protegidos(tmp_path, monkeypatch):
+    """Simula o Windows: o chmod nao levanta erro e tambem nao restringe nada."""
+    (tmp_path / "credenciais.txt").write_text("MELI_APP_ID=\n", encoding="utf-8")
+    monkeypatch.setattr(pasta_mod.os, "chmod", lambda *a, **k: None)
+    r = pasta_mod.preparar(tmp_path)
+    assert "credenciais.txt" not in _lista(r, "protegidos")
+    assert "credenciais.txt" in _lista(r, "nao_protegidos")
+
+
+def test_nao_protegido_vem_com_motivo_de_um_conjunto_fechado(tmp_path, monkeypatch):
+    (tmp_path / "tokens.json").write_text("{}", encoding="utf-8")
+    monkeypatch.setattr(pasta_mod.os, "chmod", lambda *a, **k: None)
+    r = pasta_mod.preparar(tmp_path)
+    assert r["nao_protegidos"], "esperava relato de arquivo nao protegido"
+    for item in r["nao_protegidos"]:
+        assert item["motivo"] in pasta_mod.MOTIVOS_SEM_PROTECAO
+
+
+def test_cli_nao_afirma_que_fechou_quando_nao_fechou(tmp_path, monkeypatch, capsys):
+    (tmp_path / "credenciais.txt").write_text("MELI_APP_ID=\n", encoding="utf-8")
+    monkeypatch.setattr(pasta_mod.os, "chmod", lambda *a, **k: None)
+    monkeypatch.setattr(pasta_mod, "BASE", tmp_path)
+    monkeypatch.setattr(pasta_mod.sys, "argv", ["pasta.py"])
+    pasta_mod._main()
+    saida = capsys.readouterr().out
+    assert "Permissao fechada em: credenciais.txt" not in saida
+    assert "credenciais.txt" in saida
+
+
+def test_arquivo_ausente_nao_vira_relato(tmp_path):
+    """Pasta nova: ainda nao existe tokens.json, e isso nao e falha de protecao."""
+    r = pasta_mod.preparar(tmp_path)
+    assert "tokens.json" not in _lista(r, "nao_protegidos")
+    assert "tokens.json" not in _lista(r, "protegidos")
+
+
 def test_gitignore_cobre_os_arquivos_sensiveis(tmp_path):
     pasta_mod.preparar(tmp_path)
     gi = (tmp_path / ".gitignore").read_text(encoding="utf-8")
