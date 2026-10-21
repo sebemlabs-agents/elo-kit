@@ -6,7 +6,7 @@ tente adivinhar — errar o diagnóstico custa mais que admitir.
 | Sintoma | Causa provável | O que fazer |
 |---|---|---|
 | `python3 pasta.py` para dizendo que a pasta sincroniza | a pasta está dentro de Dropbox, iCloud, Google Drive ou OneDrive | **não contorne.** Peça uma pasta fora do serviço de sincronização e comece ali. O token não pode ir para a nuvem sem o usuário saber |
-| Toda chamada falha antes de chegar ao Mercado Livre, ou erro de rede/proxy | `api.mercadolibre.com` não está nos domínios permitidos do Claude | Configurações → Capabilities → domínios permitidos. Em conta de empresa, só o administrador libera. Teste: o mesmo da etapa 2 da skill (uma linha de Python) — `curl` e `grep` nao existem no Windows por padrao. **Qualquer `ok` serve, inclusive `ok 403`**; o que reprova e erro de rede, DNS ou certificado |
+| A mensagem diz explicitamente que o domínio não é permitido | `api.mercadolibre.com` não está nos domínios permitidos do Claude | Configurações → Capabilities → domínios permitidos. Em conta de empresa, só o administrador libera. Teste: o mesmo da etapa 2 da skill (uma linha de Python) — `curl` e `grep` não existem no Windows por padrão. **Qualquer `ok` serve, inclusive `ok 403`.** Falhou de outro jeito, veja a tabela de sinais da etapa 2 antes de concluir qualquer coisa |
 | `Faltam valores em credenciais.txt` | arquivo não preenchido ou não salvo | `python3 meli.py check` mostra o que está vazio sem revelar valor. Peça para abrir, preencher e salvar |
 | Erro de autorização citando `redirect_uri` | endereço diferente do cadastrado | a linha `MELI_REDIRECT_URI` precisa ser idêntica à do DevCenter, caractere por caractere |
 | `O state nao confere` | a URL colada é de outra tentativa | rode `python3 autorizar.py` de novo e use a URL nova |
@@ -26,6 +26,11 @@ tente adivinhar — errar o diagnóstico custa mais que admitir.
 | A instalação falha e a mensagem não diz por quê | **causa não determinada** | modo demonstração dizendo só "não deu para instalar aqui". **Não atribua ao TI sem prova** |
 | A pessoa recusa a instalação | decisão dela | modo demonstração, sem insistir e sem repetir o pedido |
 | `pasta.py` avisa que não conseguiu fechar a permissão de um arquivo | o sistema não aplica restrição de leitura por arquivo (acontece no Windows) | **não é erro e não bloqueia.** Os arquivos seguem só na máquina dela e o pacote não envia nada para fora; o que não dá para prometer é que outro usuário da mesma máquina não consiga abrir o arquivo. Diga isso com essas palavras |
+| Erro de rede citando DNS, nome que não resolve ou host desconhecido | a máquina não achou o endereço | **não conclua bloqueio administrativo.** Confira se a internet está de pé e tente de novo. Etapa 2 da skill tem a tabela de sinais |
+| Erro citando certificado | quase sempre proxy da empresa no meio do caminho | é conversa com o TI, **mas sobre o proxy** — não sobre liberar domínio no Claude |
+| Demorou e parou (timeout) | rede lenta ou Mercado Livre fora do ar | tente uma vez mais antes de qualquer conclusão |
+| `winget` não existe nesta máquina | Windows 10 mais antigo, LTSC ou sem a Loja | **não é erro dela.** Plano B da etapa 0.2: ela baixa de `python.org/downloads`, versão 3.12, marcando **"Add python.exe to PATH"** na primeira tela e usando **"Install Now"** (não pede senha de administrador). Windows em ARM precisa da linha **arm64**, não do botão grande |
+| Instalou pelo site e o comando continua não existindo | a caixa "Add python.exe to PATH" não foi marcada | reabrir o instalador, escolher **Modify** e marcar. Ou use o caminho absoluto da etapa 0.3 |
 
 ## Três coisas que não são erro
 

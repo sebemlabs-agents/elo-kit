@@ -113,7 +113,32 @@ Com o sim, o comando é um só, por sistema:
 | Sistema | Comando |
 |---|---|
 | **Windows** | `winget install --id Python.Python.3.12 --scope user --accept-package-agreements --accept-source-agreements` |
-| **macOS** | normalmente já vem. Se não veio, mande o instalador oficial de `python.org/downloads` e ela abre com dois cliques |
+| **macOS** | normalmente já vem. Se não veio, use o plano B abaixo |
+
+As duas flags de acordo não são enfeite: sem elas o `winget` abre uma pergunta no primeiro
+uso e **fica parado esperando uma resposta que ela não vê**.
+
+##### Plano B — quando o `winget` não existe
+
+Confira antes com `winget --version`. Em Windows 10 mais antigo, em edição LTSC ou em máquina
+sem a Loja, **ele simplesmente não está lá** — e isso não é erro dela.
+
+Nesse caso **você não instala; ela instala, com dois cliques.** É o mesmo arquivo que o
+`winget` baixaria, do site de quem faz o Python:
+
+1. Mande o endereço `python.org/downloads` e peça para ela baixar a versão **3.12**.
+2. **O passo que mais gente pula:** na primeira tela do instalador, marcar
+   **"Add python.exe to PATH"** antes de clicar em instalar. Sem isso o Python existe e nada
+   o encontra. Diga isso **antes** de ela abrir o arquivo, não depois.
+3. Deixe a instalação como vem — **"Install Now"**, que instala só para a conta dela e não
+   pede senha de administrador. Não mande marcar "Install for all users".
+4. Terminou, volte para 0.3.
+
+Se a máquina for **Windows em ARM**, o botão grande do site entrega a versão errada: ela
+precisa da linha **arm64** na lista de downloads da 3.12.
+
+**Vale uma tentativa, como todo o resto.** Não deu, é 0.6 — e nunca outro gerenciador de
+pacotes, outro site ou versão "portátil".
 
 **Nunca** peça senha de administrador, **nunca** use instalador alternativo, **nunca**
 oriente a desligar antivírus, controle de aplicativo ou qualquer proteção, e **nunca**
@@ -209,11 +234,22 @@ Usa o mesmo caminho de rede que os scripts vão usar, e funciona igual no Mac e 
 `curl` e `grep` não existem no Windows por padrão.
 
 **Qualquer `ok` serve, inclusive `ok 403`.** Sem login o Meli responde 403, e isso prova que
-a resposta veio dele: o caminho está aberto. O que reprova é erro de rede, de DNS ou de
-certificado — aí o domínio `api.mercadolibre.com` precisa ser liberado nas
-configurações do Claude (Configurações → Capabilities → domínios permitidos). **Em conta de
-empresa, quem libera é o administrador** — então isso pode não ser resolvível na hora. Se for
-o caso, pare, explique, e ofereça o modo demonstração (etapa 7).
+a resposta veio dele: o caminho está aberto, siga.
+
+**Não deu `ok`? Não conclua que o administrador precisa liberar.** Erro de rede não prova
+bloqueio administrativo, e culpar o TI dela sem prova manda a pessoa para uma conversa que não
+resolve nada. Olhe o que a mensagem diz:
+
+| O que apareceu | O que é | O que fazer |
+|---|---|---|
+| Fala em nome que não resolve, DNS ou host desconhecido | a máquina não achou o endereço | pode ser a rede dela, não permissão. Vale conferir se a internet está de pé e tentar de novo |
+| Fala em certificado | quase sempre um proxy da empresa no meio do caminho | aí sim é conversa com o TI, **mas é sobre o proxy**, não sobre liberar domínio no Claude |
+| Demorou e parou (timeout) | rede lenta, ou o Mercado Livre fora do ar | tente de novo uma vez antes de qualquer conclusão |
+| Diz explicitamente que o domínio não é permitido | aí é o Claude | Configurações → Capabilities → domínios permitidos. **Em conta de empresa quem libera é o administrador**, e isso pode não sair na hora |
+| **Qualquer outra coisa** | **não deu para saber** | não atribua a ninguém |
+
+Em todos os casos em que não resolver na hora: **modo demonstração** (etapa 7), com a volta
+marcada. Ela constrói tudo igual e conecta depois.
 
 ### 3. O aplicativo no DevCenter
 
