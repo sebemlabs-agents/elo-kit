@@ -65,12 +65,12 @@
 </div>
 
 <h2>1 · Antes da call — 5 minutos</h2>
-<p>Confirme que ele tem, <em>sem você no meio</em>:</p>
+<p>Confirme só o que a skill <em>não</em> consegue resolver por ele:</p>
 <ul>
-  <li><strong>Python 3.8 ou mais novo.</strong> Ele roda <code>python3 --version</code> e te manda a saída.</li>
+  <li><strong>Plano pago do Claude</strong> — Pro, Max, Team, Enterprise ou Console. No plano gratuito o Claude Code não existe, e sem ele não há nada a testar. É decisão de compra: pergunte com antecedência.</li>
   <li><strong>Conta administradora</strong> do Mercado Livre — a que acessa o financeiro. Operador e colaborador não conseguem autorizar.</li>
-  <li><strong>Uma pasta nova, fora</strong> de Dropbox, iCloud, Google Drive e OneDrive.</li>
 </ul>
+<p class="nota"><strong>Não confira Python e não peça pasta nenhuma.</strong> A etapa 0 da skill acha o Python, instala se faltar (pedindo autorização a ele), escolhe o lugar da pasta e cria. Adiantar isso é resolver antes exatamente o que está sendo medido — e você fica sem saber se a skill atravessa alguém sozinha.</p>
 <p>Você tenha aberto, em outra janela: a tabela de problemas da skill (<code>references/problemas.md</code>) e este playbook. Não abra para ele.</p>
 <p><strong>Combine o enquadramento:</strong> é a primeira rodada, leva uns 15 minutos, e ele sai com o radar de promoções funcionando. É troca, não favor — isso tira a pressão dos dois lados se algo travar.</p>
 
@@ -78,9 +78,10 @@
 <div class="msg">
   <p>Oi! Amanhã a gente vai conectar o Claude na sua conta do Mercado Livre, <strong>só leitura</strong> — nada é alterado na sua loja. Em uns 15 min você sai com um radar que mostra as promoções que estão acabando e o que vale aderir.</p>
   <p>Pra chegar pronto, três coisas:</p>
-  <p>1. Roda no terminal <code>python3 --version</code> e me manda o que apareceu.<br>
-     2. Confirma que você tem o login da <strong>conta administradora</strong> do Meli (a que vê o financeiro).<br>
-     3. Cria uma pasta nova chamada <code>elo-meli</code> em Documentos — <strong>fora</strong> de Dropbox, iCloud ou Google Drive — e conecta ela no Claude.</p>
+  <p>Pra chegar pronto, duas coisas — e <strong>nenhuma delas é comando</strong>:</p>
+  <p>1. Confirma que seu Claude é de <strong>plano pago</strong> (Pro, Max, Team, Enterprise ou Console). No gratuito o Claude Code não vem.<br>
+     2. Confirma que você tem o login da <strong>conta administradora</strong> do Meli (a que vê o financeiro).</p>
+  <p>Do resto o próprio Claude cuida: ele confere o Python, instala se faltar (te pedindo autorização antes) e cria a pasta no lugar certo.</p>
   <p>Na call você vai rodar só isso:</p>
   <p>Sem terminal: <b>Configurações → Plugins → + Adicionar → Adicionar marketplace → Adicionar de um repositório</b>, colando <code>sebemlabs-agents/elo-kit</code> (a forma curta; a URL inteira é recusada quando a máquina já tem o catálogo registrado). Depois instalar pela lista.</p>
   <p class="nota">Pelo terminal, equivale a <code>claude plugin install elo-kit --marketplace sebemlabs-agents/elo-kit</code>. <b>Observe por qual caminho a pessoa vai sozinha</b> — é informação de palco.</p>
@@ -112,7 +113,9 @@
     <tr><td><code>invalid_operator_user_id</code></td><td>autorizou com conta de operador</td><td>repetir com a conta administradora</td></tr>
     <tr><td>"your client callback has to match with the redirect_uri param"</td><td>a URL do arquivo não é idêntica à do DevCenter</td><td>comparar caractere por caractere, inclusive barra final</td></tr>
     <tr><td>Toda chamada falha antes de chegar ao Meli</td><td><code>api.mercadolibre.com</code> fora dos domínios permitidos</td><td>em conta de empresa só o admin libera — pode não dar hoje</td></tr>
-    <tr><td><code>python3</code> não existe, ou é 3.7</td><td>Python ausente ou antigo</td><td>instalar do site oficial marcando "Add to PATH"</td></tr>
+    <tr><td><code>python3</code> não existe, ou é 3.7</td><td>Python ausente ou antigo</td><td><strong>a etapa 0 resolve</strong> — deixe a skill instalar. Sem <code>winget</code> na máquina, ela manda ele baixar de python.org marcando "Add python.exe to PATH"</td></tr>
+    <tr><td>Instalou e o comando continua não existindo</td><td>PATH novo não vale em terminal já aberto (Windows)</td><td>não é falha: a etapa 0.3 procura pelo caminho absoluto</td></tr>
+    <tr><td>A instalação é barrada e a mensagem não diz por quê</td><td>causa não determinada</td><td>modo demonstração, <strong>sem culpar o TI dele</strong>. Anote a mensagem exata — é o dado que falta</td></tr>
     <tr><td>"não devolveu renovação automática"</td><td>app sem acesso offline</td><td>habilitar no DevCenter e autorizar de novo</td></tr>
   </tbody>
 </table>
@@ -125,7 +128,9 @@
 <div class="ficha">
   <table>
     <tr><td style="width:58%">Mentorado e tipo de conta</td><td><span class="linha"></span></td></tr>
-    <tr><td>Sistema (Mac / Windows) e versão do Python</td><td><span class="linha"></span></td></tr>
+    <tr><td>Sistema (Mac / Windows), arquitetura e versão do Python</td><td><span class="linha"></span></td></tr>
+    <tr><td>O Claude precisou instalar o Python? Por qual caminho?</td><td><span class="linha"></span></td></tr>
+    <tr><td>Alguma mensagem que a tabela de sinais não previa</td><td><span class="linha"></span></td></tr>
     <tr><td><strong>Tempo total</strong>, do primeiro comando ao painel</td><td><span class="linha"></span></td></tr>
     <tr><td><strong>Tempo até o primeiro número</strong> na tela</td><td><span class="linha"></span></td></tr>
     <tr><td>Em que passo ele hesitou mais, e quanto tempo</td><td><span class="linha"></span></td></tr>
