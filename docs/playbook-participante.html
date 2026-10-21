@@ -125,13 +125,14 @@
 <div class="tela" style="margin-top:4mm">
   <h4>Se você usa o Codex em vez do Claude</h4>
   <p>Dá para instalar, mas <strong>nem tudo é igual</strong> — vale saber antes de escolher por onde ir.</p>
-  <p><strong>Funciona:</strong> instalar e rodar as skills. Os programas do pacote não dependem do Claude; a conexão com o Mercado Livre é a mesma e continua sendo só leitura.</p>
+  <p><strong>Funciona, testado:</strong> instalar o pacote. Os programas não dependem do Claude; a conexão com o Mercado Livre é a mesma e continua sendo só leitura.</p>
   <p><strong>Muda:</strong> não existe o caminho pelo menu — é por comando:<br>
      <code>codex plugin marketplace add sebemlabs-agents/elo-kit</code><br>
      <code>codex plugin add elo-kit@elo-kit</code></p>
-  <p><strong>Não funciona:</strong> a atualização automática. Lá ela não existe, e pedir "liga a atualização automática" vai dar erro — o pacote procura uma pasta de configuração que é do Claude. Para receber as novidades, rode de vez em quando:<br>
-     <code>codex plugin marketplace upgrade</code></p>
-  <p><strong>Não testamos:</strong> o resto deste guia foi escrito e testado no Claude. As telas que ele cita — menu de plugins, pasta conectada, domínios permitidos — são de lá. No Codex o caminho existe, mas você vai estar abrindo trilha.</p>
+  <p><strong>Não funciona:</strong> a atualização automática. Lá ela não existe, e pedir "liga a atualização automática" vai dar erro — o pacote procura uma pasta de configuração que é do Claude.</p>
+  <p><strong>Em troca, a manual funciona e está testada.</strong> Rode de vez em quando, e você recebe tudo que saiu desde a sua instalação:<br>
+     <code>codex plugin marketplace upgrade elo-kit</code></p>
+  <p><strong>Não testamos:</strong> conectar uma conta do Mercado Livre de ponta a ponta pelo Codex. E as telas que este guia cita — menu de plugins, pasta conectada, domínios permitidos — são do Claude; no Codex a permissão de pasta funciona de outro jeito. O caminho existe, mas aí você vai estar abrindo trilha.</p>
   <p class="nota" style="margin-bottom:0"><strong>Recomendação:</strong> se esta é a sua primeira vez, vá de Claude. Volte para o Codex depois, com a conta já conectada e funcionando.</p>
 </div>
 
