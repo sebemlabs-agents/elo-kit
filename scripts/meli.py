@@ -30,6 +30,8 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
+import pasta  # mesma pasta dos scripts; usa fechado()
+
 BASE = Path(__file__).resolve().parent
 # aceita credenciais.txt (visivel no Finder) ou .env
 ENV_FILE = next(
@@ -159,10 +161,20 @@ def salvar_tokens(resp):
     TOKENS_FILE.write_text(
         json.dumps(dados, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
     )
+    # O tokens.json nasce DEPOIS que o pasta.py rodou, entao a verificacao dele
+    # tem de acontecer aqui — e este e o arquivo mais sensivel da pasta. Mesma
+    # regra: medir o resultado, nunca confiar na chamada.
+    dados["protegido"] = True
+    dados["motivo"] = None
     try:
         os.chmod(TOKENS_FILE, 0o600)
     except OSError:
-        pass
+        dados["protegido"] = False
+        dados["motivo"] = "sem_permissao_para_mudar"
+    else:
+        if not pasta.fechado(TOKENS_FILE):
+            dados["protegido"] = False
+            dados["motivo"] = "nao_verificado_neste_sistema"
     return dados
 
 
