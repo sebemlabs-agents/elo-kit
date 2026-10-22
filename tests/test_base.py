@@ -1708,3 +1708,75 @@ def test_migracao_nao_mexe_em_arquivo_que_ja_tem_tudo(tmp_path):
     antes = cred.read_bytes()
     assert pasta_mod.completar_credenciais(cred) == []
     assert cred.read_bytes() == antes
+
+
+# ---------------------------- segunda rodada da revisao: o que ficou parcial
+
+def test_endereco_malformado_nao_devolve_o_proprio_texto_no_erro():
+    """O .port do urllib levanta ValueError com o texto colado na mensagem.
+
+    Quem chama imprime a excecao — e numa gravacao de tela isso poe o `?code=`
+    em video. O erro tem de ser nosso, sem interpolar nada."""
+    with pytest.raises(ValueError) as e:
+        seguro.conferir_origem("https://host:NAOEPORTA/cb?code=CODIGO_SECRETO",
+                               "https://meu.supabase.co/cb")
+    assert "CODIGO_SECRETO" not in str(e.value)
+    assert "NAOEPORTA" not in str(e.value)
+
+
+def test_so_codigo_com_forma_de_codigo_e_repetido():
+    """Filtrar caractere nao bastava: um token minusculado passava pelo filtro.
+
+    A conferencia e no valor CRU e exige snake_case — forma que credencial
+    nao tem."""
+    assert "error_param" in shopee._explicar({"error": "error_param"})
+    # Formas que uma credencial tem: base64, o mesmo base64 minusculado (que
+    # era o furo), maiusculas, palavra longa sem sublinhado, e cauda comprida.
+    for falso in ("eyJhbGciOiJSUzI1NiJ9abc", "eyjhbgcioijsuzi1nij9abc",
+                  "ZXVTT1VVTVRPS0VOREVURVNURQ", "abcdefghijklmnopqrst", "a" * 40):
+        msg = shopee._explicar({"error": falso})
+        assert falso not in msg and falso.lower() not in msg, \
+            "ecoou %r na mensagem de erro" % falso
+
+
+def test_shopee_exige_tentativa_em_andamento_nesta_maquina():
+    """A Shopee nao tem state; o vinculo com a tentativa e local.
+
+    Sem isso, a mesma URL de retorno serviria duas vezes — e o refresh da
+    Shopee e de uso unico: a segunda troca derruba a conexao que funcionou."""
+    import autorizar_shopee as a
+    assert a.PEDIDO.name == ".oauth_state_shopee"
+    assert a.VALIDADE_PEDIDO > 0
+    assert a._pedido_em_andamento() is None, "sem arquivo, nao ha tentativa"
+
+
+def test_pedido_vencido_nao_vale_como_tentativa(tmp_path, monkeypatch):
+    import autorizar_shopee as a
+    pedido = tmp_path / ".oauth_state_shopee"
+    monkeypatch.setattr(a, "PEDIDO", pedido)
+    monkeypatch.setattr(a, "VALIDADE_PEDIDO", 60)
+    pedido.write_text(json.dumps({"em": int(time.time()) - 600,
+                                  "redirect": "https://x.co/cb"}), encoding="utf-8")
+    assert a._pedido_em_andamento() is None
+    pedido.write_text(json.dumps({"em": int(time.time()),
+                                  "redirect": "https://x.co/cb"}), encoding="utf-8")
+    assert a._pedido_em_andamento()["redirect"] == "https://x.co/cb"
+
+
+def test_os_vinculos_de_tentativa_sao_tratados_como_sensiveis(tmp_path):
+    for nome in (".oauth_state", ".oauth_state_olist", ".oauth_state_shopee"):
+        assert nome in pasta_mod.ARQUIVOS_SENSIVEIS
+    pasta_mod.preparar(tmp_path)
+    gi = (tmp_path / ".gitignore").read_text(encoding="utf-8")
+    for nome in (".oauth_state_olist", ".oauth_state_shopee"):
+        assert nome in gi
+
+
+def test_tudo_que_e_sensivel_tambem_fica_fora_do_git(tmp_path):
+    """As duas listas divergiam: canal novo entrava numa e faltava na outra.
+
+    Quem versionasse a pasta commitava o segredo do canal esquecido."""
+    pasta_mod.preparar(tmp_path)
+    gi = (tmp_path / ".gitignore").read_text(encoding="utf-8").splitlines()
+    for nome in pasta_mod.ARQUIVOS_SENSIVEIS:
+        assert nome in gi, "%s e sensivel mas nao esta no .gitignore" % nome

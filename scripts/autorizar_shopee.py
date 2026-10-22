@@ -11,17 +11,28 @@
 O code vale 10 MINUTOS e uma vez so. Nao demore entre um passo e outro.
 Nenhum valor secreto e impresso aqui.
 """
+import json
 import sys
+import time
 from pathlib import Path
 
 BASE = Path(__file__).resolve().parent
 sys.path.insert(0, str(BASE))
 
 import meli  # noqa: E402
+import seguro  # noqa: E402
 import shopee  # noqa: E402
 
 ABRIR = BASE / "ABRIR_SHOPEE.txt"
 RETORNO = BASE / "RETORNO_SHOPEE.txt"
+# A Shopee nao tem parametro `state`: o `redirect` vai dentro do endereco
+# assinado com a partner_key, entao ninguem de fora monta um link que devolva
+# para o endereco da pessoa. O que falta e o vinculo com ESTA tentativa — e
+# isso e local: um pedido em andamento, de uso unico, com prazo. Sem ele, uma
+# mesma URL de retorno serviria duas vezes, e o refresh da Shopee e de uso
+# unico: a segunda troca derrubaria a conexao que acabou de funcionar.
+PEDIDO = BASE / ".oauth_state_shopee"
+VALIDADE_PEDIDO = 1800
 CHAVES = ("SHOPEE_PARTNER_ID", "SHOPEE_PARTNER_KEY", "SHOPEE_REDIRECT_URI")
 
 
@@ -38,6 +49,8 @@ def _credenciais():
 
 def passo1():
     pid, chave, redirect = _credenciais()
+    seguro.gravar_protegido(
+        PEDIDO, json.dumps({"em": int(time.time()), "redirect": redirect}))
     ABRIR.write_text(shopee.link_de_autorizacao(pid, chave, redirect) + "\n",
                      encoding="utf-8")
     RETORNO.write_text("", encoding="utf-8")
@@ -51,8 +64,28 @@ def passo1():
     return 0
 
 
+def _pedido_em_andamento():
+    """Diz se o passo 1 foi dado aqui e ainda vale."""
+    try:
+        d = json.loads(PEDIDO.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    if int(time.time()) - int(d.get("em", 0)) > VALIDADE_PEDIDO:
+        return None
+    return d
+
+
 def passo2(caminho):
     pid, chave, redirect = _credenciais()
+    pedido = _pedido_em_andamento()
+    if not pedido:
+        raise SystemExit(
+            "PARADO: nao ha conexao em andamento (ou ela ficou velha demais).\n"
+            "Comece pelo passo 1:  python3 autorizar_shopee.py")
+    if pedido.get("redirect") and pedido["redirect"] != redirect:
+        raise SystemExit(
+            "PARADO: o endereco de retorno em credenciais.txt mudou depois do "
+            "passo 1. Rode o passo 1 de novo:  python3 autorizar_shopee.py")
     endereco = Path(caminho).read_text(encoding="utf-8").strip()
     if not endereco:
         raise SystemExit("PARADO: %s esta vazio. Cole a barra do navegador e salve."
@@ -63,6 +96,11 @@ def passo2(caminho):
         raise SystemExit("PARADO: %s" % e)
     r = shopee.trocar_code_por_token(code, loja, pid, chave)
     Path(caminho).write_text("", encoding="utf-8")
+    # Uso unico: gasto o pedido para a mesma URL nao ser trocada duas vezes.
+    try:
+        PEDIDO.unlink()
+    except OSError:
+        pass
     print("\nConectado. Acesso salvo em tokens-shopee.json (conteudo nao mostrado).")
     print("  loja   : %s" % r["shop_id"])
     print("  retorno: esvaziado")

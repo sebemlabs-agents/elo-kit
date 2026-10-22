@@ -106,12 +106,31 @@ def gravar_protegido(destino, conteudo):
     return {"protegido": False, "motivo": "nao_verificado_neste_sistema"}
 
 
+class EnderecoIlegivel(ValueError):
+    """Nao deu para entender o endereco colado."""
+
+
 def _partes(endereco):
-    p = urllib.parse.urlparse(endereco)
+    """Quebra o endereco em partes comparaveis.
+
+    Cuidado nao obvio: em `https://host:porta-invalida/`, o `.port` do urllib
+    levanta ValueError com o TEXTO colado dentro da mensagem. Como quem chama
+    imprime a excecao, essa mensagem levaria o endereco — e o `?code=` dele —
+    para a tela e para a gravacao de video. Entao o erro e trocado por um
+    nosso, sem interpolar nada."""
+    try:
+        p = urllib.parse.urlparse(endereco)
+        porta = p.port
+    except ValueError:
+        raise EnderecoIlegivel(
+            "Nao consegui entender esse endereco. Cole a barra do navegador "
+            "inteira, sem editar nada, e salve o arquivo."
+        )
     host = (p.hostname or "").lower().rstrip(".")
-    porta = p.port or (443 if p.scheme == "https" else 80 if p.scheme == "http" else None)
+    esquema = p.scheme.lower()
+    porta = porta or (443 if esquema == "https" else 80 if esquema == "http" else None)
     caminho = (p.path or "/").rstrip("/") or "/"
-    return p.scheme.lower(), host, porta, caminho
+    return esquema, host, porta, caminho
 
 
 def resumo(endereco):

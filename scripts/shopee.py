@@ -18,6 +18,7 @@ import hashlib
 import hmac
 import json
 import os
+import re
 import time
 import urllib.parse
 import urllib.request
@@ -168,7 +169,12 @@ def _post(caminho, corpo, partner_id, partner_key):
     return dado
 
 
-_SO_CODIGO = set("abcdefghijklmnopqrstuvwxyz0123456789_-.")
+# Forma de codigo de erro da Shopee: snake_case minusculo, com pelo menos um
+# sublinhado — error_param, error_sign, invalid_code. Conferida no valor CRU,
+# nunca no minusculado: um token em base64 minusculado viraria uma palavra
+# aceitavel, e era justamente o que esta forma precisa barrar. Token tem
+# maiuscula e nao tem sublinhado; nao atravessa.
+_TEM_FORMA_DE_CODIGO = re.compile(r"^[a-z][a-z0-9]*(?:_[a-z0-9]+)+$")
 
 
 def _explicar(dado):
@@ -182,7 +188,8 @@ def _explicar(dado):
     E nada do corpo remoto e impresso. Se um dia a Shopee devolver no texto um
     pedaco da chamada — assinatura, token, parametro — repetir isso seria vazar
     segredo pela mensagem de erro. Do corpo sai apenas o codigo, filtrado."""
-    codigo = str(dado.get("error", "")).lower()
+    cru = str(dado.get("error", ""))[:64]
+    codigo = cru.lower()
     if "invalid_code" in codigo or "expire" in codigo:
         return _RECADO_CODIGO
     if "sign" in codigo:
@@ -193,10 +200,18 @@ def _explicar(dado):
                 "aplicacao ja foi aprovada para producao.")
     if not codigo and "expire" in str(dado.get("message", "")).lower():
         return _RECADO_CODIGO
-    limpo = "".join(c for c in codigo[:40] if c in _SO_CODIGO)
-    return ("A Shopee recusou a chamada (codigo: %s). Nao mostro a resposta dela "
-            "aqui porque ela pode trazer pedacos da sua credencial."
-            % (limpo or "nao informado"))
+    # Só repete o codigo quando ele TEM FORMA de codigo de erro: minusculas,
+    # digitos e sublinhado, curto. Filtrar caractere nao bastava — um token
+    # tambem passa pelo filtro. Credencial tem maiuscula, e comprida e nao e
+    # palavra; nada disso atravessa esta forma. O que nao couber nela some.
+    if len(cru) <= 32 and _TEM_FORMA_DE_CODIGO.match(cru):
+        return ("A Shopee recusou a chamada (codigo: %s). Nao mostro a resposta "
+                "dela aqui porque ela pode trazer pedacos da sua credencial."
+                % cru)
+    return ("A Shopee recusou a chamada e nao devolveu um codigo que eu "
+            "reconheca. Nao mostro a resposta dela aqui porque ela pode trazer "
+            "pedacos da sua credencial — veja o erro no console do Open "
+            "Platform, em Shop Authorization.")
 
 
 def salvar_tokens(dado, partner_id, shop_id):

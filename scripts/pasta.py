@@ -44,6 +44,7 @@ ARQUIVOS_SENSIVEIS = (
     "tokens.json",
     ".oauth_state",
     ".oauth_state_olist",
+    ".oauth_state_shopee",
     "ABRIR_NO_NAVEGADOR.txt",
     "RETORNO.txt",
     "tokens-shopee.json",
@@ -69,25 +70,21 @@ MOTIVOS_SEM_PROTECAO = {
 }
 
 
-GITIGNORE = """credenciais.txt
-.env
-tokens.json
-tokens.backup.json
-.oauth_state
-ABRIR_NO_NAVEGADOR.txt
-RETORNO.txt
-tokens-shopee.json
-ABRIR_SHOPEE.txt
-RETORNO_SHOPEE.txt
-tokens-olist.json
-ABRIR_OLIST.txt
-RETORNO_OLIST.txt
-prometheus-*.json
-painel.html
-dados.json
-__pycache__/
-*.pyc
-"""
+# O .gitignore e GERADO a partir de ARQUIVOS_SENSIVEIS, de proposito. Enquanto
+# eram duas listas escritas a mao, elas divergiam: um canal novo entrava na
+# lista de permissao e ficava fora do .gitignore, e o segredo dele ia para o
+# commit de quem versionasse a pasta. Agora nao tem como esquecer de um lado.
+OUTROS_IGNORADOS = (
+    "tokens.backup.json",
+    "prometheus-*.json",
+    "painel.html",
+    "dados.json",
+    "__pycache__/",
+    "*.pyc",
+)
+
+GITIGNORE = "".join(
+    "%s\n" % n for n in tuple(ARQUIVOS_SENSIVEIS) + OUTROS_IGNORADOS)
 
 CREDENCIAIS_EXEMPLO = """# Credenciais da SUA aplicacao do Mercado Livre
 # (developers.mercadolivre.com.br/devcenter -> Minhas aplicacoes)

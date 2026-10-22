@@ -16,8 +16,8 @@ quando não são ditas antes.
 | Endereço de retorno | `.invalid`, que não existe de propósito | **domínio HTTPS de verdade** |
 | Assinatura | não tem | **HMAC em cada chamada** |
 | Código de autorização | poucos minutos | **10 minutos, uma vez só** |
-| Acesso | ~6 horas | **4 horas** |
-| Renovação | 6 meses sem uso | **30 dias sem uso** |
+| Acesso | ~6 horas | **4 horas** (visto na resposta real) |
+| Renovação | 6 meses sem uso | **30 dias sem uso, segundo a Shopee** |
 
 **A primeira linha é a que trava gente.** A Shopee recusa `.invalid` e recusa nome sem
 ponto — conferido na tela em 22/10/2026. Ela quer um endereço que exista.
@@ -117,11 +117,12 @@ Confirme com ela o número da loja que apareceu.
 
 ## 5. O aviso que não pode faltar no fim
 
-> A conexão da Shopee **vence em 30 dias sem uso**. Se ela conectar e só voltar ao painel
-> em um mês, vai estar desconectada — e é só refazer, não perdeu nada.
+> A conexão da Shopee vence **muito mais rápido** que a do Mercado Livre: a Shopee
+> documenta 30 dias sem uso, contra seis meses do Meli. Se ela conectar e só voltar ao
+> painel semanas depois, pode estar desconectada — e é só refazer, não perdeu nada.
 
-No Mercado Livre são seis meses. Aqui são trinta dias, e quem não for avisado vai achar
-que o pacote quebrou.
+Diga o motivo, não só o prazo: quem não for avisado vai achar que o pacote quebrou. E não
+prometa a data exata — o pacote não controla esse relógio, a Shopee controla.
 
 ---
 
