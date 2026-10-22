@@ -126,9 +126,20 @@
   <h4>Se você usa o Codex em vez do Claude</h4>
   <p>Dá para instalar, mas <strong>nem tudo é igual</strong> — vale saber antes de escolher por onde ir.</p>
   <p><strong>Funciona, testado:</strong> instalar o pacote. Os programas não dependem do Claude; a conexão com o Mercado Livre é a mesma e continua sendo só leitura.</p>
-  <p><strong>Muda:</strong> não existe o caminho pelo menu — é por comando:<br>
-     <code>codex plugin marketplace add sebemlabs-agents/prometheus</code><br>
-     <code>codex plugin add prometheus@prometheus</code></p>
+  <p><strong>Muda:</strong> o menu existe, mas pede <strong>três campos</strong> onde o Claude pede um:</p>
+  <table style="width:100%;border-collapse:collapse;margin:0 0 2.5mm;font-size:9pt">
+    <tr><td style="padding:1mm 2mm;border:.6pt solid #e1e1e7"><b>Origem</b></td>
+        <td style="padding:1mm 2mm;border:.6pt solid #e1e1e7"><code>sebemlabs-agents/prometheus</code></td></tr>
+    <tr><td style="padding:1mm 2mm;border:.6pt solid #e1e1e7"><b>Referência do Git</b></td>
+        <td style="padding:1mm 2mm;border:.6pt solid #e1e1e7"><code>main</code></td></tr>
+    <tr><td style="padding:1mm 2mm;border:.6pt solid #e1e1e7"><b>Caminhos esparsos</b></td>
+        <td style="padding:1mm 2mm;border:.6pt solid #e1e1e7"><b>deixe vazio</b></td></tr>
+  </table>
+  <p>O terceiro campo é a pegadinha: o <code>plugins/codex</code> que aparece ali é só exemplo, para
+     repositório que guarda vários plugins em subpastas. O nosso tem tudo na raiz — se você preencher,
+     ele não acha nada.</p>
+  <p>Pelo terminal, se preferir: <code>codex plugin marketplace add sebemlabs-agents/prometheus</code>
+     e depois <code>codex plugin add prometheus@prometheus</code>.</p>
   <p><strong>Não funciona:</strong> a atualização automática. Lá ela não existe, e pedir "liga a atualização automática" vai dar erro — o pacote procura uma pasta de configuração que é do Claude.</p>
   <p><strong>Em troca, a manual funciona e está testada.</strong> Rode de vez em quando, e você recebe tudo que saiu desde a sua instalação:<br>
      <code>codex plugin marketplace upgrade prometheus</code></p>

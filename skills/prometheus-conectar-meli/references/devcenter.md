@@ -51,6 +51,11 @@ página dando erro é o comportamento correto.
 
 1. Acesse `https://developers.mercadolivre.com.br/devcenter` e faça login **com a conta
    administradora**.
+
+   > **Quem nunca criou aplicação costuma não ser redirecionado para lugar nenhum** — a página
+   > simplesmente não leva à criação. Já aconteceu em imersões anteriores. Tenha o endereço
+   > direto de criação à mão e mande para ela quando isso acontecer, em vez de ficar
+   > procurando botão junto.
 2. **Criar aplicação.** Preencha:
    - **Nome:** o que ela reconheça na lista daqui a seis meses. Sugira o padrão
      `Painel <nome da loja>` — por exemplo `Painel Loja do Fulano`.
@@ -58,7 +63,9 @@ página dando erro é o comportamento correto.
      igual à URL de retorno, e isso faz a tela inteira conferir sozinha.
    - **Descrição:** sugira `Leitura dos meus próprios dados de venda para análise interna.
      Não publica, não altera anúncio nem preço.` — ela ajusta se quiser.
-   - **Logo:** qualquer imagem. Não influencia nada.
+   - **Logo:** **obrigatória**, e o formulário **recusa WebP** — tem de ser PNG. Avise antes:
+     salvar imagem do navegador costuma vir em WebP, e descobrir isso no meio do fluxo custa
+     uma conversão com a pessoa esperando.
 
    **Sugira, não imponha.** Se ela quiser outro nome, tudo bem; o que não pode variar é a URL
    de retorno, que tem de ser idêntica ao arquivo.
@@ -68,18 +75,25 @@ página dando erro é o comportamento correto.
 4. **Ligue, uma por uma** — e confira cada uma antes de salvar, porque faltar qualquer delas
    só aparece como erro lá na frente, sem dizer o que faltou:
 
-   - [ ] **Authorization code** — é o fluxo que o pacote usa
-   - [ ] **Refresh token** — sem isto a conexão cai em poucas horas e pede login de novo
-   - [ ] **PKCE** — os scripts usam S256
-   - [ ] **API credentials / client credentials** — é o que libera o App ID e a chave secreta
-   - [ ] **Produto: Mercado Livre** — não Mercado Pago, não Mercado Envios
-   - [ ] **Escopos:** somente leitura (`read`) e **acesso offline** (`offline_access`)
+   **Conferido na tela em 22/10/2026** (as versões anteriores deste guia erravam aqui):
 
-   > Os rótulos exatos dessa tela mudam de tempos em tempos. Se o que estiver na frente dela
-   > não bater com esta lista, vá pelo sentido — e **não siga com alguma delas em dúvida**:
-   > é mais barato conferir agora que depurar `403` depois.
+   - [ ] **Refresh token** — **marcar.** Sem isto a conexão cai em poucas horas e pede login
+         de novo
+   - [ ] **PKCE** — **marcar.** Os scripts usam S256
+   - [ ] **Client credentials** — **DESMARCAR.** Este guia já mandou marcar, e estava errado:
+         é outro fluxo de autenticação, que o pacote não usa. O App ID e a chave secreta
+         existem de qualquer jeito
+   - [ ] **Mercado Livre** — **marcar.** É o produto; não Mercado Pago, não Mercado Envios
+   - [ ] **Visa** — **não marcar.** Fica ao lado do Mercado Livre e serve a quem vende carro
+         e imóvel. Ninguém precisa dele aqui
 
-5. **Permissões funcionais** — marque as quatro:
+   > Os rótulos mudam de tempos em tempos. Se o que estiver na frente dela não bater com esta
+   > lista, vá pelo sentido — e **não siga com alguma delas em dúvida**: é mais barato
+   > conferir agora que depurar `403` depois.
+
+5. **Acessos** — é assim que a tela chama; este guia dizia "permissões funcionais". São
+   permissões por recurso, com leitura e escrita separadas. **Marque leitura nas quatro** (o
+   pacote nunca escreve):
    - Usuários (normalmente já vem ligada)
    - Publicação e sincronização — a lista de anúncios
    - Vendas e envios — os pedidos
@@ -91,7 +105,8 @@ página dando erro é o comportamento correto.
 6. **Tópicos e notificações:** não precisa marcar nada. Se o formulário exigir uma URL,
    use a mesma `.invalid`.
 
-7. **Salvar.**
+7. **Salvar.** **Às vezes dá erro na primeira tentativa.** Clicar de novo costuma
+   resolver — avise antes, senão ela acha que preencheu algo errado e começa a desfazer.
 
 ### Depois de salvar — a parte que surpreende todo mundo
 
@@ -109,6 +124,11 @@ avisar antes evita a sensação de que algo deu errado:
 
 Sempre que ela precisar ver os valores de novo, é esse mesmo caminho: lista → editar →
 login → continuar.
+
+**Na lista, a aplicação aparece como "Aplicativo não certificada", com uma nota de segurança e
+um convite a "terminar de configurar a segurança".** Não é erro e não precisa ser resolvido: é
+o DevCenter pedindo certificação, que serve a quem publica aplicativo para terceiros. Diga isso
+antes que ela leia sozinha e ache que parou no meio.
 
 8. Ela copia os dois valores para o `credenciais.txt`. **Não para o chat.**
 

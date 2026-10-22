@@ -155,9 +155,14 @@ Não reinicie nada e não peça para ela fechar o Claude. Procure pelo caminho a
 ```
 py -3 --version
 %LOCALAPPDATA%\Programs\Python\Python312\python.exe --version
+%LOCALAPPDATA%\Programs\Python\Python312-arm64\python.exe --version
 ```
 
-Se o segundo responder, **use o caminho absoluto dele em todos os comandos seguintes**.
+**A terceira linha é para Windows em ARM**, onde a pasta leva o sufixo `-arm64`. A maioria
+das máquinas é x64 e para na segunda; se nenhuma das duas responder, tente a de ARM antes
+de concluir que a instalação falhou.
+
+Quando uma responder, **use o caminho absoluto dela em todos os comandos seguintes**.
 
 #### 0.4 Criar a pasta no lugar certo
 
