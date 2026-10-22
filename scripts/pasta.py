@@ -46,6 +46,9 @@ ARQUIVOS_SENSIVEIS = (
     "tokens-shopee.json",
     "ABRIR_SHOPEE.txt",
     "RETORNO_SHOPEE.txt",
+    "tokens-olist.json",
+    "ABRIR_OLIST.txt",
+    "RETORNO_OLIST.txt",
 )
 
 # Conjunto FECHADO de motivos. O relato nunca carrega texto de excecao nem
@@ -73,6 +76,9 @@ RETORNO.txt
 tokens-shopee.json
 ABRIR_SHOPEE.txt
 RETORNO_SHOPEE.txt
+tokens-olist.json
+ABRIR_OLIST.txt
+RETORNO_OLIST.txt
 prometheus-*.json
 painel.html
 dados.json
@@ -109,7 +115,20 @@ SHOPEE_PARTNER_KEY=
 SHOPEE_REDIRECT_URI=
 """
 
-BLOCOS_OPCIONAIS = (("SHOPEE_PARTNER_ID", BLOCO_SHOPEE),)
+BLOCO_OLIST = """#
+# ---------------------------------------------------------------------------
+# Olist / Tiny — so preencha se voce usa o ERP e quer o CUSTO dos produtos.
+# (no ERP: menu > configuracoes > aba geral > Aplicativos > + novo aplicativo)
+#
+# Precisa do plano Construa ou superior e da extensao Gestao de Aplicativos.
+# As chaves so aparecem depois de salvar e ENTRAR DE NOVO no aplicativo.
+OLIST_CLIENT_ID=
+OLIST_CLIENT_SECRET=
+OLIST_REDIRECT_URI=
+"""
+
+BLOCOS_OPCIONAIS = (("SHOPEE_PARTNER_ID", BLOCO_SHOPEE),
+                    ("OLIST_CLIENT_ID", BLOCO_OLIST))
 
 URI_PADRAO = "https://radar-meli.invalid/callback"
 
@@ -220,7 +239,7 @@ def preparar(caminho=None, nome=None):
     cred = pasta / "credenciais.txt"
     acrescentados = []
     if not cred.exists():
-        cred.write_text(CREDENCIAIS_EXEMPLO % {"uri": uri, "shopee": BLOCO_SHOPEE},
+        cred.write_text(CREDENCIAIS_EXEMPLO % {"uri": uri, "shopee": BLOCO_SHOPEE + BLOCO_OLIST},
                         encoding="utf-8")
         criados.append(cred.name)
     else:

@@ -1396,3 +1396,95 @@ def test_nao_mexe_em_bloco_que_a_pessoa_ja_preencheu(tmp_path):
     texto = cred.read_text(encoding="utf-8")
     assert "SHOPEE_PARTNER_ID=999" in texto
     assert texto.count("SHOPEE_PARTNER_ID") == 1
+
+
+# ------------------------------------------------------------------- olist
+#
+# OAuth2 padrao (Keycloak da Tiny). O que muda o desenho: o access_token vale 4
+# horas e o refresh vale 1 DIA. Conexao viva morreria entre um uso e outro,
+# entao a skill IMPORTA o custo para a pasta e o painel usa o arquivo.
+
+import olist  # noqa: E402
+
+
+def test_link_de_autorizacao_e_o_keycloak_da_tiny():
+    from urllib.parse import urlparse, parse_qs
+    u = olist.link_de_autorizacao("meu-id", "https://x.supabase.co")
+    p = urlparse(u)
+    assert p.netloc == "accounts.tiny.com.br"
+    assert p.path == "/realms/tiny/protocol/openid-connect/auth"
+    q = parse_qs(p.query)
+    assert q["client_id"] == ["meu-id"]
+    assert q["redirect_uri"] == ["https://x.supabase.co"]
+    assert q["response_type"] == ["code"]
+    assert q["scope"] == ["openid"]
+
+
+def test_le_o_code_do_endereco_colado():
+    assert olist.ler_retorno("https://x.supabase.co/?code=abc123&state=y") == "abc123"
+
+
+def test_retorno_sem_code_explica():
+    with pytest.raises(ValueError, match="code"):
+        olist.ler_retorno("https://x.supabase.co/")
+
+
+def test_cliente_olist_recusa_metodo_que_nao_seja_get():
+    for metodo in ("POST", "PUT", "DELETE", "patch"):
+        with pytest.raises(PermissionError):
+            olist.api(metodo, "/produtos/1/preco")
+
+
+def test_refresh_vencido_diz_para_reconectar_em_vez_de_erro_cru(tmp_path, monkeypatch):
+    """1 dia e pouco: vai acontecer com quase todo mundo. A mensagem tem de
+    dizer o que fazer, nao devolver o erro cru do servidor."""
+    import json, time
+    f = tmp_path / "tokens-olist.json"
+    f.write_text(json.dumps({
+        "access_token": "x", "refresh_token": "y",
+        "expires_at": int(time.time()) - 10,
+        "refresh_expires_at": int(time.time()) - 10,
+    }), encoding="utf-8")
+    monkeypatch.setattr(olist, "TOKENS_FILE", f)
+    with pytest.raises(olist.PrecisaReconectar, match="(?i)reconect"):
+        olist.token_valido("id", "segredo")
+
+
+def test_custo_importado_vira_arquivo_na_pasta(tmp_path, monkeypatch):
+    """O painel le o arquivo, nao a API: a margem funciona dias depois, com a
+    conexao ja vencida."""
+    import json
+    monkeypatch.setattr(olist, "CUSTOS_FILE", tmp_path / "prometheus-custos.json")
+    r = olist.gravar_custos([{"sku": "ABC", "preco_custo": 12.5, "custo_medio": 11.0}])
+    assert r["itens"] == 1
+    d = json.loads((tmp_path / "prometheus-custos.json").read_text(encoding="utf-8"))
+    assert d["fonte"] == "olist"
+    assert d["itens"][0]["sku"] == "ABC"
+    assert "capturado_em" in d
+
+
+def test_credenciais_ganham_o_bloco_do_olist(tmp_path):
+    pasta_mod.preparar(tmp_path)
+    texto = (tmp_path / "credenciais.txt").read_text(encoding="utf-8")
+    for chave in ("OLIST_CLIENT_ID", "OLIST_CLIENT_SECRET", "OLIST_REDIRECT_URI"):
+        assert chave in texto
+
+
+def test_pasta_antiga_ganha_os_dois_blocos_novos(tmp_path):
+    """Quem conectou so o Meli recebe Shopee E Olist ao atualizar."""
+    cred = tmp_path / "credenciais.txt"
+    cred.write_text("MELI_APP_ID=123\n", encoding="utf-8")
+    r = pasta_mod.preparar(tmp_path)
+    assert set(r["acrescentados"]) == {"SHOPEE_PARTNER_ID", "OLIST_CLIENT_ID"}
+    texto = cred.read_text(encoding="utf-8")
+    assert "MELI_APP_ID=123" in texto
+    assert texto.count("OLIST_CLIENT_ID") == 1
+
+
+def test_arquivos_do_olist_sao_tratados_como_sensiveis(tmp_path):
+    for nome in ("tokens-olist.json", "ABRIR_OLIST.txt", "RETORNO_OLIST.txt"):
+        assert nome in pasta_mod.ARQUIVOS_SENSIVEIS
+    pasta_mod.preparar(tmp_path)
+    gi = (tmp_path / ".gitignore").read_text(encoding="utf-8")
+    for nome in ("tokens-olist.json", "ABRIR_OLIST.txt", "RETORNO_OLIST.txt"):
+        assert nome in gi
