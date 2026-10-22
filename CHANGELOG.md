@@ -1,14 +1,44 @@
 # Mudanças do prometheus
 
-**O manifesto não fixa versão de propósito.** Sem `version`, o Claude usa o commit como
-versão: todo push publicado vira uma versão nova, e quem está com atualização automática
-ligada recebe sozinho, sem rodar nada e sem reinstalar.
+> ## ⚠️ REGRA DE PUBLICAÇÃO — leia antes de dar push
+>
+> **O pacote fixa `version` no `plugin.json`. Todo push publicado tem que subir esse número.**
+>
+> O Claude só entrega uma cópia nova quando a versão **muda**. Se o número ficar parado, o
+> aluno não recebe nada — nem skill nova, nem correção de segurança — e o botão "Atualizar"
+> dele fica cinza, mesmo com o GitHub vários commits à frente.
+>
+> **Isso já aconteceu neste pacote:** ficou em `0.1.0` por cinco mudanças seguidas.
+>
+> Por um tempo a versão foi omitida de propósito, justamente para fugir desse risco — sem
+> `version`, o Claude usa o commit e tudo chega sozinho. Em 22/10/2026 o Marvin decidiu o
+> contrário, para o aluno conseguir **ver na tela** em que versão está. O preço dessa escolha
+> é esta regra, e ela não é opcional.
+>
+> Checklist do release:
+> 1. subir `version` em `.claude-plugin/plugin.json` **e** `.codex-plugin/plugin.json`
+> 2. **nunca** declarar `version` no `marketplace.json` — declarar nos dois faz o Claude usar
+>    o do `plugin.json` sem avisar, e o `claude plugin validate` acusa a divergência
+> 3. `claude plugin validate .`
+> 4. anotar a mudança aqui embaixo
+> 5. publicar pelo Cypher Guard
 
-Fixar `version` aqui faria o oposto — prenderia todo mundo na cópia antiga até alguém lembrar
-de mudar o número à mão. Já aconteceu: o pacote ficou em `0.1.0` por cinco mudanças seguidas
-e o botão "Atualizar" aparecia cinza, com o GitHub três commits à frente.
+## 1.1.0 — 22 de outubro de 2026
 
-Este arquivo existe para contar o que mudou, não para controlar entrega.
+- **Conexão com a Shopee.** Mesmo molde do Mercado Livre, só leitura. O endereço de retorno
+  tem que ser um domínio HTTPS de verdade — a Shopee recusa `.invalid`, que é o truque do
+  Meli, e o pacote avisa isso antes de a pessoa abrir o formulário.
+- **Conexão com a Olist (Tiny).** Importa o **custo** dos produtos, que é o dado que nenhum
+  marketplace entrega e sem o qual a margem não fecha.
+- **Quem instalou antes recebe os canais novos.** O `credenciais.txt` que já existia passa a
+  ganhar as linhas novas sozinho, sem perder nem reordenar o que a pessoa já preencheu.
+- **Nove correções de segurança**, de uma revisão cross-vendor que bloqueou a entrega três
+  vezes. As duas que mais importam: a Shopee tinha um POST genérico assinado, que furava a
+  promessa de somente-leitura; e o arquivo de token nascia aberto e só era fechado depois,
+  dando uma janela em que outro usuário da máquina conseguia ler. Três delas valiam também
+  para a conexão do Mercado Livre que já estava nas máquinas.
+- **Os nomes das telas do DevCenter** agora são os que aparecem de verdade — "URIs de
+  redirect", "Permissões", "PKCE necessário" —, conferidos em vídeo.
 
 ## Outubro de 2026
 

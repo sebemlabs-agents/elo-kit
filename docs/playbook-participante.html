@@ -114,11 +114,13 @@
     <div class="fotos"><img src="img/painel-b-diretorio.png" alt="Janela Diretório com a aba Code e o cartão do Elo kit">
     <img src="img/painel-b-instalado.png" alt="O mesmo cartão depois de instalado, com ícone de engrenagem"></div>
     <p>Na janela <b>Diretório</b>, vá na aba <b>Code</b> e clique no <b>+</b> do cartão. Não pergunta nada: instala para você.</p>
-    <p>Pronto quando o <b>+</b> virar uma <b>engrenagem</b> e aparecer o aviso <i>"Elo kit está instalado e pronto para uso"</i>.</p>
+    <p>Pronto quando o <b>+</b> virar uma <b>engrenagem</b> e aparecer o aviso de que o <i>Prometheus está instalado e pronto para uso</i>.</p>
   </div>
 </div>
 
-<p class="nota"><b>Uma coisa só, depois de instalar:</b> peça ao Claude <b><i>"liga a atualização automática do prometheus"</i></b>. O pacote ganha skills novas e correções com o tempo, e isso vem desligado por padrão — sem ligar, você fica parado na versão de hoje. Ele pergunta antes de mexer e guarda cópia da sua configuração.</p>
+<p class="nota"><b>Não pule este passo.</b> A atualização automática <b>vem desligada</b>, e quem não ligar fica parado na versão do dia em que instalou — sem as skills novas e sem as correções. Pelo menu: digite <code>/plugin</code> no chat, vá em <b>Marketplaces</b>, escolha <b>prometheus</b> e clique em <b>Enable auto-update</b>. É uma vez só, para sempre.</p>
+<p class="nota"><b>Como saber se você está em dia:</b> o pacote tem número de versão, e ele aparece no painel de plugins — em <code>/plugin</code>, no cartão do <b>prometheus</b>. A versão com Shopee e Olist é a <b>1.1.0</b>. Outra forma, sem abrir painel nenhum: digite <code>/</code> no chat e veja se <code>conectar-shopee</code> está na lista.</p>
+<p class="nota"><b>Se um dia quiser forçar:</b> no terminal, <code>claude plugin update prometheus@prometheus</code> e depois feche e abra o aplicativo.</p>
 <p class="nota"><b>Importante nas duas:</b> a aba certa é a <b>Code</b>. O pacote roda comandos no seu computador, e isso só existe no Claude Code — não na conversa comum.</p>
 <p class="nota"><b>Se preferir o terminal:</b> <code>claude plugin install prometheus --marketplace sebemlabs-agents/prometheus</code> faz os dois passos de uma vez (precisa do Claude Code 2.1.292 ou mais novo; confira com <code>claude --version</code>).</p>
 <div class="ok"><strong>Deu certo quando:</strong> o <b>prometheus</b> aparecer entre os seus plugins instalados. Pelo terminal, quando sair <em>"Successfully added marketplace"</em> e depois <em>"Successfully installed plugin"</em>.</div>
