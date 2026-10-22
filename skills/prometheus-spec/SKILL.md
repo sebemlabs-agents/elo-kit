@@ -1,5 +1,5 @@
 ---
-name: elo-spec
+name: prometheus-spec
 description: Transforma o painel local num plano escrito para subir os dados para Supabase e publicar a tela na Vercel — esquema de tabelas tirado dos dados reais da pessoa, segurança ligada desde o início, e a fronteira do que sobe e do que fica na máquina. Não envia nada. Use quando o usuário quiser colocar o painel na nuvem, compartilhar com a equipe, "subir para o Supabase", "publicar na Vercel", "deixar isso online", "minha equipe precisa ver", ou perguntar como tirar o painel da máquina dele.
 ---
 

@@ -10,7 +10,7 @@ Regras que o painel precisa cumprir (ver CONTRATO.md):
   - a idade do dado aparece, porque dado de ontem lido como de hoje e decisao errada.
 
 CLI:
-    python3 painel.py            # le elo-*.json da pasta e grava painel.html
+    python3 painel.py            # le prometheus-*.json da pasta e grava painel.html
 
 Compatibilidade: Python 3.8+.
 """
@@ -24,14 +24,14 @@ import contrato
 BASE = Path(__file__).resolve().parent
 
 TITULOS = {
-    "elo-promocoes": "Promoções terminando",
-    "elo-caixa": "Dinheiro a receber",
-    "elo-margem": "Margem por anúncio",
-    "elo-criativos": "Conteúdo de produto",
-    "elo-devolucoes": "Devoluções",
-    "elo-margem": "Margem por anúncio",
-    "elo-concorrencia": "Concorrência",
-    "elo-estoque": "Estoque e compras",
+    "prometheus-promocoes": "Promoções terminando",
+    "prometheus-caixa": "Dinheiro a receber",
+    "prometheus-margem": "Margem por anúncio",
+    "prometheus-criativos": "Conteúdo de produto",
+    "prometheus-devolucoes": "Devoluções",
+    "prometheus-margem": "Margem por anúncio",
+    "prometheus-concorrencia": "Concorrência",
+    "prometheus-estoque": "Estoque e compras",
 }
 
 

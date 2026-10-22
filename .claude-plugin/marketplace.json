@@ -1,12 +1,12 @@
 {
-  "name": "elo-kit",
+  "name": "prometheus",
   "owner": {
     "name": "Elo"
   },
   "description": "Pacote de skills que lê a conta do Mercado Livre em somente leitura e monta um painel local na máquina do próprio vendedor.",
   "plugins": [
     {
-      "name": "elo-kit",
+      "name": "prometheus",
       "source": "./",
       "description": "Lê sua conta do Mercado Livre e monta um painel local — só leitura, nada na sua conta é alterado. Também lê as suas planilhas, de qualquer formato, para o que a API não tem. Novas skills chegam na atualização, sem reinstalar.",
       "license": "MIT",
@@ -17,7 +17,7 @@
         "somente-leitura",
         "painel"
       ],
-      "displayName": "Elo Kit"
+      "displayName": "Prometheus"
     }
   ]
 }

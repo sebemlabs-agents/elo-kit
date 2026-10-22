@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Le e liga a atualizacao automatica do catalogo elo-kit.
+"""Le e liga a atualizacao automatica do catalogo prometheus.
 
 Sem isto, uma correcao publicada nunca chega na maquina da pessoa: catalogo
 que nao e da Anthropic vem com atualizacao automatica DESLIGADA por padrao.
@@ -8,7 +8,7 @@ Uso:
     python3 atualizacao.py            diz se esta ligada
     python3 atualizacao.py --ligar    liga (faz copia dos arquivos antes)
 
-Nao toca em nenhuma outra configuracao, e so mexe na entrada do elo-kit.
+Nao toca em nenhuma outra configuracao, e so mexe na entrada do prometheus.
 
 Compatibilidade: Python 3.8+.
 """
@@ -18,7 +18,7 @@ import shutil
 import sys
 from pathlib import Path
 
-CATALOGO = "elo-kit"
+CATALOGO = "prometheus"
 
 
 class SemClaude(RuntimeError):
@@ -86,7 +86,7 @@ def ligar(base=None):
     base = base or pasta_config()
     if estado(base) == "nao instalado":
         raise SemClaude(
-            "O catalogo elo-kit nao esta registrado nesta maquina. "
+            "O catalogo prometheus nao esta registrado nesta maquina. "
             "Instale o pacote primeiro."
         )
 
@@ -124,7 +124,7 @@ def _main():
 
     agora = estado()
     if agora == "nao instalado":
-        print("O pacote elo-kit nao esta instalado nesta maquina.")
+        print("O pacote prometheus nao esta instalado nesta maquina.")
         return 1
 
     if "--ligar" not in args:

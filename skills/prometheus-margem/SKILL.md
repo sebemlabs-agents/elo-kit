@@ -1,5 +1,5 @@
 ---
-name: elo-margem
+name: prometheus-margem
 description: Calcula a margem de contribuição por anúncio — quanto sobra depois da comissão do marketplace, do frete, do custo e do imposto. Cruza a planilha de custo do usuário com os preços dos anúncios. Use quando ele falar em margem, lucro, "quanto eu ganho nesse produto", "vale a pena vender", "estou no prejuízo", rentabilidade, ou quando outra skill esbarrar na falta do custo por SKU. Precisa da planilha de custo; o resto pode vir da conta conectada.
 ---
 
@@ -32,7 +32,7 @@ sem custo.
 
 ## O caminho
 
-**1. Leia a planilha** com a skill `elo-planilha`, que descreve as colunas e os tipos. Não
+**1. Leia a planilha** com a skill `prometheus-planilha`, que descreve as colunas e os tipos. Não
 pule: mapear coluna pelo nome que você imagina é como se produz número errado com cara de
 certo.
 
@@ -89,7 +89,7 @@ dos números que você me deu.* Melhorar o resultado é melhorar a planilha.
 
 ## O gancho natural
 
-Esta é a skill que mais puxa as outras. Quando a `elo-promocoes` mostrar um desconto exigido e
+Esta é a skill que mais puxa as outras. Quando a `prometheus-promocoes` mostrar um desconto exigido e
 ele perguntar "vale a pena aderir?", a resposta só existe aqui — e só com o custo na mão.
 
 É o argumento para a planilha de custo deixar de ser lição de casa chata e virar a chave de

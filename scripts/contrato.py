@@ -5,7 +5,7 @@ Toda skill grava pelo mesmo envelope e o painel le so dali. A especificacao
 completa esta em CONTRATO.md, na raiz do repositorio.
 
     from contrato import gravar, carregar
-    gravar("elo-promocoes", conta, periodo, resumo, itens, faltando=[...], lacunas={...})
+    gravar("prometheus-promocoes", conta, periodo, resumo, itens, faltando=[...], lacunas={...})
 
 gravar() valida ANTES de escrever. Falhar na escrita e melhor que gravar um
 arquivo que o painel desenharia errado.
@@ -173,7 +173,7 @@ def carregar_todos(pasta=None):
     painel: quem instalou skill nova num pacote antigo nao fica sem painel."""
     pasta = Path(pasta or BASE)
     achados = []
-    for arq in sorted(pasta.glob("elo-*.json")):
+    for arq in sorted(pasta.glob("prometheus-*.json")):
         try:
             dado = json.loads(arq.read_text(encoding="utf-8"))
         except ValueError:

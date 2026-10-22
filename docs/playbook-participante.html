@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<title>Conecte sua conta do Mercado Livre — elo-kit</title>
+<title>Conecte sua conta do Mercado Livre — prometheus</title>
 <style>
   @page { size: A4; margin: 14mm 14mm 16mm; }
   * { box-sizing: border-box; }
@@ -76,7 +76,7 @@
 
 <h1>Conecte sua conta do Mercado Livre</h1>
 <p class="sub">Em cerca de 15 minutos, no seu computador, sem ninguém junto. Você vai sair com um painel que mostra as promoções que estão acabando e o que vale aderir.</p>
-<p class="fonte">elo-kit · github.com/sebemlabs-agents/elo-kit</p>
+<p class="fonte">prometheus · github.com/sebemlabs-agents/prometheus</p>
 
 <div class="promessa">
   <h3>Antes de tudo: o que isto nunca faz</h3>
@@ -91,15 +91,15 @@
 <h2>Antes de começar — duas coisas</h2>
 <ol>
   <li><strong>O login da conta administradora</strong> do Mercado Livre — aquela que enxerga o financeiro da loja. Conta de operador ou de colaborador não funciona: o próprio Mercado Livre recusa.</li>
-  <li><strong>Uma pasta nova</strong> no seu computador, só para isto, chamada <code>elo-meli</code>. <strong>Não coloque dentro do Dropbox, do iCloud, do Google Drive nem do OneDrive</strong> — esses serviços copiam tudo para a nuvem, e a chave da sua conta não pode ir junto. O programa verifica isso e para, se for o caso.<br>No Mac, Documentos serve. <strong>No Windows, não use Documentos</strong>: ela quase sempre está dentro do OneDrive. Use <code>C:\Users\&lt;seu nome&gt;\elo-meli</code>.</li>
+  <li><strong>Uma pasta nova</strong> no seu computador, só para isto, chamada <code>prometheus</code>. <strong>Não coloque dentro do Dropbox, do iCloud, do Google Drive nem do OneDrive</strong> — esses serviços copiam tudo para a nuvem, e a chave da sua conta não pode ir junto. O programa verifica isso e para, se for o caso.<br>No Mac, Documentos serve. <strong>No Windows, não use Documentos</strong>: ela quase sempre está dentro do OneDrive. Use <code>C:\Users\&lt;seu nome&gt;\prometheus</code>.</li>
 </ol>
 <p class="nota"><b>E o Python?</b> Não precisa conferir nada antes. O pacote usa Python, e a primeira coisa que o Claude faz é procurar na sua máquina. Se faltar, ele avisa e te manda o link — leva dois minutos e não atrapalha o resto.</p>
 
 <div class="passo"><span class="n">1</span><span class="t">Instalar o pacote</span></div>
 <p><b>Pelo aplicativo, sem terminal.</b> <b>Configurações → Plugins</b>, botão <b>+ Adicionar</b> no canto superior direito, <b>Adicionar marketplace</b>, e então <b>Adicionar de um repositório</b>. Cole:</p>
-<pre>sebemlabs-agents/elo-kit</pre>
+<pre>sebemlabs-agents/prometheus</pre>
 <p class="nota">Use essa forma curta, não a URL inteira do GitHub. Se a máquina já tiver o catálogo registrado, a URL completa é recusada como se fosse outra fonte.</p>
-<p class="nota">Depois disso o <b>elo-kit</b> aparece na lista. <b>A tela de instalar tem duas versões</b>, dependendo da sua versão do aplicativo — as duas funcionam, e o resultado é o mesmo.</p>
+<p class="nota">Depois disso o <b>prometheus</b> aparece na lista. <b>A tela de instalar tem duas versões</b>, dependendo da sua versão do aplicativo — as duas funcionam, e o resultado é o mesmo.</p>
 
 <div class="telas">
   <div class="tela">
@@ -118,20 +118,20 @@
   </div>
 </div>
 
-<p class="nota"><b>Uma coisa só, depois de instalar:</b> peça ao Claude <b><i>"liga a atualização automática do elo-kit"</i></b>. O pacote ganha skills novas e correções com o tempo, e isso vem desligado por padrão — sem ligar, você fica parado na versão de hoje. Ele pergunta antes de mexer e guarda cópia da sua configuração.</p>
+<p class="nota"><b>Uma coisa só, depois de instalar:</b> peça ao Claude <b><i>"liga a atualização automática do prometheus"</i></b>. O pacote ganha skills novas e correções com o tempo, e isso vem desligado por padrão — sem ligar, você fica parado na versão de hoje. Ele pergunta antes de mexer e guarda cópia da sua configuração.</p>
 <p class="nota"><b>Importante nas duas:</b> a aba certa é a <b>Code</b>. O pacote roda comandos no seu computador, e isso só existe no Claude Code — não na conversa comum.</p>
-<p class="nota"><b>Se preferir o terminal:</b> <code>claude plugin install elo-kit --marketplace sebemlabs-agents/elo-kit</code> faz os dois passos de uma vez (precisa do Claude Code 2.1.292 ou mais novo; confira com <code>claude --version</code>).</p>
-<div class="ok"><strong>Deu certo quando:</strong> o <b>elo-kit</b> aparecer entre os seus plugins instalados. Pelo terminal, quando sair <em>"Successfully added marketplace"</em> e depois <em>"Successfully installed plugin"</em>.</div>
+<p class="nota"><b>Se preferir o terminal:</b> <code>claude plugin install prometheus --marketplace sebemlabs-agents/prometheus</code> faz os dois passos de uma vez (precisa do Claude Code 2.1.292 ou mais novo; confira com <code>claude --version</code>).</p>
+<div class="ok"><strong>Deu certo quando:</strong> o <b>prometheus</b> aparecer entre os seus plugins instalados. Pelo terminal, quando sair <em>"Successfully added marketplace"</em> e depois <em>"Successfully installed plugin"</em>.</div>
 <div class="tela" style="margin-top:4mm">
   <h4>Se você usa o Codex em vez do Claude</h4>
   <p>Dá para instalar, mas <strong>nem tudo é igual</strong> — vale saber antes de escolher por onde ir.</p>
   <p><strong>Funciona, testado:</strong> instalar o pacote. Os programas não dependem do Claude; a conexão com o Mercado Livre é a mesma e continua sendo só leitura.</p>
   <p><strong>Muda:</strong> não existe o caminho pelo menu — é por comando:<br>
-     <code>codex plugin marketplace add sebemlabs-agents/elo-kit</code><br>
-     <code>codex plugin add elo-kit@elo-kit</code></p>
+     <code>codex plugin marketplace add sebemlabs-agents/prometheus</code><br>
+     <code>codex plugin add prometheus@prometheus</code></p>
   <p><strong>Não funciona:</strong> a atualização automática. Lá ela não existe, e pedir "liga a atualização automática" vai dar erro — o pacote procura uma pasta de configuração que é do Claude.</p>
   <p><strong>Em troca, a manual funciona e está testada.</strong> Rode de vez em quando, e você recebe tudo que saiu desde a sua instalação:<br>
-     <code>codex plugin marketplace upgrade elo-kit</code></p>
+     <code>codex plugin marketplace upgrade prometheus</code></p>
   <p><strong>Não testamos:</strong> conectar uma conta do Mercado Livre de ponta a ponta pelo Codex. E as telas que este guia cita — menu de plugins, pasta conectada, domínios permitidos — são do Claude; no Codex a permissão de pasta funciona de outro jeito. O caminho existe, mas aí você vai estar abrindo trilha.</p>
   <p class="nota" style="margin-bottom:0"><strong>Recomendação:</strong> se esta é a sua primeira vez, vá de Claude. Volte para o Codex depois, com a conta já conectada e funcionando.</p>
 </div>
@@ -196,7 +196,7 @@
 <p>No seu computador, basta apagar a pasta. Não fica nada em lugar nenhum além dela.</p>
 
 <footer>
-  elo-kit · guia do participante · Marciano Chula / Elo · github.com/sebemlabs-agents/elo-kit
+  prometheus · guia do participante · Marciano Chula / Elo · github.com/sebemlabs-agents/prometheus
 </footer>
 
 </div>

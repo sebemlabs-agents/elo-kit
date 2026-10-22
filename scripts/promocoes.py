@@ -198,7 +198,7 @@ def _main():
                 print("--janela precisa de um numero de dias. Usando %d." % JANELA_PADRAO)
 
     d = coletar(janela=janela, rapido="--rapido" in args)
-    contrato.gravar("elo-promocoes", conta=d["conta"], periodo=d["periodo"],
+    contrato.gravar("prometheus-promocoes", conta=d["conta"], periodo=d["periodo"],
                     resumo=d["resumo"], itens=d["itens"], faltando=d["faltando"],
                     lacunas=d["lacunas"], avisos=d["avisos"])
 

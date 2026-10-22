@@ -218,7 +218,7 @@ def test_gitignore_cobre_os_arquivos_sensiveis(tmp_path):
 
 def test_periodo_sem_pedidos_marca_faltando_em_vez_de_zero(tmp_path):
     dado = contrato.gravar(
-        "elo-caixa", CONTA, PERIODO, resumo={}, itens=[],
+        "prometheus-caixa", CONTA, PERIODO, resumo={}, itens=[],
         faltando=["pedidos"],
         lacunas={"pedidos": "nao houve pedido pago neste periodo"},
         pasta=tmp_path,
@@ -231,7 +231,7 @@ def test_periodo_sem_pedidos_marca_faltando_em_vez_de_zero(tmp_path):
 def test_lacuna_sem_explicacao_e_recusada(tmp_path):
     with pytest.raises(contrato.ContratoInvalido, match="sem explicacao"):
         contrato.gravar(
-            "elo-margem", CONTA, PERIODO, resumo={}, itens=[],
+            "prometheus-margem", CONTA, PERIODO, resumo={}, itens=[],
             faltando=["custo"], pasta=tmp_path,
         )
 
@@ -239,7 +239,7 @@ def test_lacuna_sem_explicacao_e_recusada(tmp_path):
 def test_dinheiro_como_texto_e_recusado(tmp_path):
     with pytest.raises(contrato.ContratoInvalido, match="dinheiro"):
         contrato.gravar(
-            "elo-margem", CONTA, PERIODO, resumo={},
+            "prometheus-margem", CONTA, PERIODO, resumo={},
             itens=[{"mlb": "MLB1", "preco": "1.234,56"}], pasta=tmp_path,
         )
 
@@ -247,7 +247,7 @@ def test_dinheiro_como_texto_e_recusado(tmp_path):
 def test_resumo_aninhado_e_recusado(tmp_path):
     with pytest.raises(contrato.ContratoInvalido, match="aninhado"):
         contrato.gravar(
-            "elo-promocoes", CONTA, PERIODO,
+            "prometheus-promocoes", CONTA, PERIODO,
             resumo={"totais": {"a": 1}}, itens=[], pasta=tmp_path,
         )
 
@@ -255,7 +255,7 @@ def test_resumo_aninhado_e_recusado(tmp_path):
 def test_fonte_invalida_e_recusada(tmp_path):
     with pytest.raises(contrato.ContratoInvalido, match="fonte"):
         contrato.gravar(
-            "elo-promocoes", CONTA, PERIODO, resumo={}, itens=[],
+            "prometheus-promocoes", CONTA, PERIODO, resumo={}, itens=[],
             fonte="producao", pasta=tmp_path,
         )
 
@@ -263,41 +263,41 @@ def test_fonte_invalida_e_recusada(tmp_path):
 def test_conta_sem_id_e_recusada_quando_le_a_conta(tmp_path):
     with pytest.raises(contrato.ContratoInvalido, match="conta"):
         contrato.gravar(
-            "elo-promocoes", {"apelido": "X"}, PERIODO, resumo={}, itens=[],
+            "prometheus-promocoes", {"apelido": "X"}, PERIODO, resumo={}, itens=[],
             fonte="api", pasta=tmp_path,
         )
 
 
 def test_gravar_e_carregar_fecham_o_ciclo(tmp_path):
     contrato.gravar(
-        "elo-promocoes", CONTA, PERIODO,
+        "prometheus-promocoes", CONTA, PERIODO,
         resumo={"promocoes_na_janela": 4}, itens=[{"nome": "SETEMBRO"}],
         pasta=tmp_path,
     )
-    lido = contrato.carregar("elo-promocoes", pasta=tmp_path)
+    lido = contrato.carregar("prometheus-promocoes", pasta=tmp_path)
     assert lido["resumo"]["promocoes_na_janela"] == 4
     assert lido["contrato"] == contrato.CONTRATO
-    assert contrato.carregar("elo-inexistente", pasta=tmp_path) is None
+    assert contrato.carregar("prometheus-inexistente", pasta=tmp_path) is None
 
 
 def test_gerado_em_tem_fuso(tmp_path):
-    dado = contrato.gravar("elo-caixa", CONTA, PERIODO, {}, [], pasta=tmp_path)
+    dado = contrato.gravar("prometheus-caixa", CONTA, PERIODO, {}, [], pasta=tmp_path)
     assert dado["gerado_em"][-5] in "+-"
 
 
 def test_carregar_todos_ignora_versao_desconhecida(tmp_path):
-    contrato.gravar("elo-caixa", CONTA, PERIODO, {}, [], pasta=tmp_path)
-    (tmp_path / "elo-doutro-mundo.json").write_text(
-        json.dumps({"contrato": "99", "skill": "elo-doutro-mundo"}), encoding="utf-8"
+    contrato.gravar("prometheus-caixa", CONTA, PERIODO, {}, [], pasta=tmp_path)
+    (tmp_path / "prometheus-doutro-mundo.json").write_text(
+        json.dumps({"contrato": "99", "skill": "prometheus-doutro-mundo"}), encoding="utf-8"
     )
     achados = contrato.carregar_todos(tmp_path)
-    assert [d["skill"] for d in achados] == ["elo-caixa"]
+    assert [d["skill"] for d in achados] == ["prometheus-caixa"]
 
 
 def test_skill_local_nao_precisa_de_conta(tmp_path):
     """Skill que nao le a conta (conteudo de produto) nao tem conta pra nomear."""
     dado = contrato.gravar(
-        "elo-criativos", None, None, resumo={"produtos": 1},
+        "prometheus-criativos", None, None, resumo={"produtos": 1},
         itens=[{"titulo": "Serra circular"}], fonte="local", pasta=tmp_path,
     )
     assert dado["fonte"] == "local"
@@ -307,7 +307,7 @@ def test_skill_local_nao_precisa_de_conta(tmp_path):
 def test_fonte_api_continua_exigindo_conta(tmp_path):
     with pytest.raises(contrato.ContratoInvalido, match="conta"):
         contrato.gravar(
-            "elo-promocoes", {"apelido": "X"}, PERIODO, resumo={}, itens=[],
+            "prometheus-promocoes", {"apelido": "X"}, PERIODO, resumo={}, itens=[],
             fonte="api", pasta=tmp_path,
         )
 
@@ -349,7 +349,7 @@ def test_criativos_preserva_o_que_foi_escrito():
 
 def test_painel_mostra_lacuna_quando_campo_esta_em_faltando(tmp_path):
     dado = contrato.montar(
-        "elo-margem", CONTA, PERIODO, resumo={}, itens=[],
+        "prometheus-margem", CONTA, PERIODO, resumo={}, itens=[],
         faltando=["custo"],
         lacunas={"custo": "o custo deste SKU nao veio na sua planilha"},
     )
@@ -359,20 +359,20 @@ def test_painel_mostra_lacuna_quando_campo_esta_em_faltando(tmp_path):
 
 
 def test_painel_marca_demonstracao_de_forma_visivel(tmp_path):
-    dado = contrato.montar("elo-promocoes", CONTA, PERIODO, {}, [], fonte="demo")
+    dado = contrato.montar("prometheus-promocoes", CONTA, PERIODO, {}, [], fonte="demo")
     html = painel.render([dado])
     assert "dados de demonstração" in html
     assert "em-demo" in html
 
 
 def test_painel_nao_marca_demonstracao_quando_fonte_e_api(tmp_path):
-    dado = contrato.montar("elo-promocoes", CONTA, PERIODO, {}, [])
+    dado = contrato.montar("prometheus-promocoes", CONTA, PERIODO, {}, [])
     html = painel.render([dado])
     assert "dados de demonstração" not in html
 
 
 def test_painel_desenha_so_as_skills_presentes():
-    a = contrato.montar("elo-promocoes", CONTA, PERIODO, {"x": 1}, [])
+    a = contrato.montar("prometheus-promocoes", CONTA, PERIODO, {"x": 1}, [])
     html = painel.render([a])
     assert "Promoções terminando" in html
     assert "Devoluções" not in html
@@ -385,7 +385,7 @@ def test_painel_vazio_explica_em_vez_de_quebrar():
 
 def test_painel_mostra_null_como_nao_veio_nao_como_zero():
     dado = contrato.montar(
-        "elo-margem", CONTA, PERIODO, {},
+        "prometheus-margem", CONTA, PERIODO, {},
         [{"mlb": "MLB1", "preco": 149.90, "custo": None, "margem": None}],
     )
     html = painel.render([dado])
@@ -395,7 +395,7 @@ def test_painel_mostra_null_como_nao_veio_nao_como_zero():
 
 def test_painel_escapa_conteudo_da_api():
     dado = contrato.montar(
-        "elo-promocoes", {"id": 1, "apelido": "<script>alert(1)</script>", "site": "MLB"},
+        "prometheus-promocoes", {"id": 1, "apelido": "<script>alert(1)</script>", "site": "MLB"},
         PERIODO, {}, [{"nome": "<img onerror=x>"}],
     )
     html = painel.render([dado])
@@ -405,7 +405,7 @@ def test_painel_escapa_conteudo_da_api():
 
 def test_idade_do_dado_aparece():
     antigo = time.strftime("%Y-%m-%dT%H:%M:%S%z", time.localtime(time.time() - 7200))
-    dado = contrato.montar("elo-caixa", CONTA, PERIODO, {}, [])
+    dado = contrato.montar("prometheus-caixa", CONTA, PERIODO, {}, [])
     dado["gerado_em"] = antigo
     assert "há 2 h" in painel.render([dado])
 
@@ -417,17 +417,17 @@ def _base_falsa(tmp_path, auto=None, com_settings=True, registrado=True):
     (base / "plugins").mkdir(parents=True)
     cfg = {"extraKnownMarketplaces": {}}
     if registrado and com_settings:
-        entrada = {"source": {"source": "github", "repo": "sebemlabs-agents/elo-kit"}}
+        entrada = {"source": {"source": "github", "repo": "sebemlabs-agents/prometheus"}}
         if auto is not None:
             entrada["autoUpdate"] = auto
-        cfg["extraKnownMarketplaces"]["elo-kit"] = entrada
+        cfg["extraKnownMarketplaces"]["prometheus"] = entrada
     cfg["outraCoisa"] = {"preservar": True}
     (base / "settings.json").write_text(json.dumps(cfg), encoding="utf-8")
     conhecidos = {}
     if registrado:
-        conhecidos["elo-kit"] = {"source": {}, "installLocation": "/x"}
+        conhecidos["prometheus"] = {"source": {}, "installLocation": "/x"}
         if auto is not None:
-            conhecidos["elo-kit"]["autoUpdate"] = auto
+            conhecidos["prometheus"]["autoUpdate"] = auto
     (base / "plugins" / "known_marketplaces.json").write_text(
         json.dumps(conhecidos), encoding="utf-8")
     return base
@@ -461,8 +461,8 @@ def test_ligar_preserva_o_resto_das_configuracoes(tmp_path):
     atualizacao.ligar(base)
     cfg = json.loads((base / "settings.json").read_text(encoding="utf-8"))
     assert cfg["outraCoisa"] == {"preservar": True}
-    assert cfg["extraKnownMarketplaces"]["elo-kit"]["source"]["repo"] == \
-        "sebemlabs-agents/elo-kit"
+    assert cfg["extraKnownMarketplaces"]["prometheus"]["source"]["repo"] == \
+        "sebemlabs-agents/prometheus"
 
 
 def test_ligar_faz_copia_de_seguranca(tmp_path):
@@ -485,7 +485,7 @@ def test_ligar_recusa_quando_nao_instalado(tmp_path):
 def test_estado_aceita_known_marketplaces_aninhado(tmp_path):
     base = _base_falsa(tmp_path, com_settings=False)
     k = base / "plugins" / "known_marketplaces.json"
-    k.write_text(json.dumps({"marketplaces": {"elo-kit": {"autoUpdate": True}}}),
+    k.write_text(json.dumps({"marketplaces": {"prometheus": {"autoUpdate": True}}}),
                  encoding="utf-8")
     assert atualizacao.estado(base) == "ligada"
 
@@ -576,7 +576,7 @@ def test_zero_de_dinheiro_nao_vira_ausente():
     assert painel._valor(0.0, "valor") == "R$ 0,00"
 
 
-# ------------------------------------------------------------- elo-promocoes
+# ------------------------------------------------------------- prometheus-promocoes
 
 class _ApiFalsa:
     """Responde no lugar do Mercado Livre. Registra o que foi pedido."""
@@ -712,15 +712,15 @@ def test_promocoes_escopo_amplo_vira_aviso(api):
 def test_promocoes_passa_no_contrato(api, tmp_path):
     api([_promo("a", "X", 2)], {"a": [{"status": "started"}]})
     d = promocoes.coletar(hoje=HOJE)
-    gravado = contrato.gravar("elo-promocoes", conta=d["conta"], periodo=d["periodo"],
+    gravado = contrato.gravar("prometheus-promocoes", conta=d["conta"], periodo=d["periodo"],
                               resumo=d["resumo"], itens=d["itens"],
                               faltando=d["faltando"], lacunas=d["lacunas"],
                               avisos=d["avisos"], pasta=tmp_path)
     assert gravado["contrato"] == "1"
-    assert (tmp_path / "elo-promocoes.json").exists()
+    assert (tmp_path / "prometheus-promocoes.json").exists()
 
 
-# ------------------------------------------------------------------ elo-caixa
+# ------------------------------------------------------------------ prometheus-caixa
 
 def _pgto(pid="123456789", valor=100.0, libera_em=5, **extra):
     base = dt.datetime(2026, 10, 19, 12, 0, tzinfo=caixa.FUSO)
@@ -847,13 +847,13 @@ def test_caixa_valor_que_nao_e_numero_e_contado_e_relatado(pedidos):
 def test_caixa_passa_no_contrato(pedidos, tmp_path):
     pedidos([_pedido(_pgto(valor=123.45, libera_em=6))])
     d = caixa.coletar(hoje=HOJE)
-    g = contrato.gravar("elo-caixa", conta=d["conta"], periodo=d["periodo"],
+    g = contrato.gravar("prometheus-caixa", conta=d["conta"], periodo=d["periodo"],
                         resumo=d["resumo"], itens=d["itens"], faltando=d["faltando"],
                         lacunas=d["lacunas"], avisos=d["avisos"], pasta=tmp_path)
     assert g["contrato"] == "1"
 
 
-# ------------------------------------------------------------------- elo-spec
+# ------------------------------------------------------------------- prometheus-spec
 
 def _grava(pasta, skill, itens, **extra):
     base = dict(conta={"id": 1, "apelido": "LOJA", "site": "MLB"},
@@ -864,7 +864,7 @@ def _grava(pasta, skill, itens, **extra):
 
 
 def test_spec_infere_o_tipo_pelo_dado_real(tmp_path):
-    _grava(tmp_path, "elo-promocoes", [
+    _grava(tmp_path, "prometheus-promocoes", [
         {"promocao": "X", "termina": "2026-10-24", "dias": 5,
          "desconto": 15.5, "amplo": True, "extra": {"a": 1}}])
     plano = spec.montar(tmp_path)
@@ -878,27 +878,27 @@ def test_spec_infere_o_tipo_pelo_dado_real(tmp_path):
 
 
 def test_spec_coluna_sempre_vazia_e_marcada(tmp_path):
-    _grava(tmp_path, "elo-caixa", [{"valor": None}])
+    _grava(tmp_path, "prometheus-caixa", [{"valor": None}])
     plano = spec.montar(tmp_path)
     assert plano["blocos"][0]["colunas"][0]["sempre_vazia"] is True
 
 
 def test_spec_um_numero_entre_nulos_ainda_define_o_tipo(tmp_path):
-    _grava(tmp_path, "elo-caixa", [{"valor": None}, {"valor": 10.0}])
+    _grava(tmp_path, "prometheus-caixa", [{"valor": None}, {"valor": 10.0}])
     plano = spec.montar(tmp_path)
     assert plano["blocos"][0]["colunas"][0]["tipo"] == "numeric(14,2)"
 
 
 def test_spec_une_colunas_de_itens_diferentes(tmp_path):
-    _grava(tmp_path, "elo-caixa", [{"a": 1}, {"b": "x"}])
+    _grava(tmp_path, "prometheus-caixa", [{"a": 1}, {"b": "x"}])
     plano = spec.montar(tmp_path)
     assert [c["origem"] for c in plano["blocos"][0]["colunas"]] == ["a", "b"]
 
 
 def test_spec_nome_de_tabela_vira_identificador_valido(tmp_path):
-    _grava(tmp_path, "elo-promocoes", [{"a": 1}])
+    _grava(tmp_path, "prometheus-promocoes", [{"a": 1}])
     plano = spec.montar(tmp_path)
-    assert plano["blocos"][0]["tabela"] == "elo_promocoes"
+    assert plano["blocos"][0]["tabela"] == "prometheus_promocoes"
 
 
 def test_spec_recusa_pasta_sem_dado(tmp_path):
@@ -907,7 +907,7 @@ def test_spec_recusa_pasta_sem_dado(tmp_path):
 
 
 def test_spec_sempre_liga_rls_e_nao_cria_politica(tmp_path):
-    _grava(tmp_path, "elo-caixa", [{"valor": 1.0}])
+    _grava(tmp_path, "prometheus-caixa", [{"valor": 1.0}])
     texto = spec.escrever(spec.montar(tmp_path), tmp_path).read_text(encoding="utf-8")
     assert "enable row level security" in texto
     assert "create policy" not in texto
@@ -915,7 +915,7 @@ def test_spec_sempre_liga_rls_e_nao_cria_politica(tmp_path):
 
 
 def test_spec_escreve_a_fronteira_dos_segredos(tmp_path):
-    _grava(tmp_path, "elo-caixa", [{"valor": 1.0}])
+    _grava(tmp_path, "prometheus-caixa", [{"valor": 1.0}])
     texto = spec.escrever(spec.montar(tmp_path), tmp_path).read_text(encoding="utf-8")
     assert "Os dados sobem. A credencial não." in texto
     for arquivo in ("tokens.json", "credenciais.txt", ".env"):
@@ -925,20 +925,20 @@ def test_spec_escreve_a_fronteira_dos_segredos(tmp_path):
 def test_spec_nao_vaza_valor_de_segredo(tmp_path):
     (tmp_path / "credenciais.txt").write_text("MELI_APP_ID=999\nMELI_CLIENT_SECRET=abc\n",
                                               encoding="utf-8")
-    _grava(tmp_path, "elo-caixa", [{"valor": 1.0}])
+    _grava(tmp_path, "prometheus-caixa", [{"valor": 1.0}])
     texto = spec.escrever(spec.montar(tmp_path), tmp_path).read_text(encoding="utf-8")
     assert "999" not in texto and "abc" not in texto
 
 
 def test_spec_avisa_quando_a_skill_esta_em_demonstracao(tmp_path):
-    _grava(tmp_path, "elo-caixa", [{"valor": 1.0}], fonte="demo")
+    _grava(tmp_path, "prometheus-caixa", [{"valor": 1.0}], fonte="demo")
     texto = spec.escrever(spec.montar(tmp_path), tmp_path).read_text(encoding="utf-8")
     assert "demonstração" in texto
     assert "nasce mentindo" in texto
 
 
 def test_spec_aponta_superpowers_sem_exigir(tmp_path):
-    _grava(tmp_path, "elo-caixa", [{"valor": 1.0}])
+    _grava(tmp_path, "prometheus-caixa", [{"valor": 1.0}])
     texto = spec.escrever(spec.montar(tmp_path), tmp_path).read_text(encoding="utf-8")
     assert "superpowers" in texto
     assert "Não é necessário" in texto
@@ -1134,7 +1134,7 @@ def test_xlsx_que_nao_e_zip_explica(tmp_path):
 # ------------------------------------------------ contrato: origem 'export'
 
 def test_contrato_aceita_fonte_export(tmp_path):
-    d = contrato.gravar("elo-margem", conta=None, periodo=None, resumo={"n": 1},
+    d = contrato.gravar("prometheus-margem", conta=None, periodo=None, resumo={"n": 1},
                         itens=[{"sku": "A"}], fonte="export",
                         capturado_em="2026-10-12T09:00:00-03:00", pasta=tmp_path)
     assert d["fonte"] == "export"
@@ -1142,13 +1142,13 @@ def test_contrato_aceita_fonte_export(tmp_path):
 
 
 def test_contrato_capturado_em_e_opcional(tmp_path):
-    d = contrato.gravar("elo-promocoes", conta={"id": 1, "apelido": "L", "site": "MLB"},
+    d = contrato.gravar("prometheus-promocoes", conta={"id": 1, "apelido": "L", "site": "MLB"},
                         periodo=None, resumo={}, itens=[], pasta=tmp_path)
     assert d["capturado_em"] is None
 
 
 def test_painel_marca_dado_de_planilha_e_a_idade_do_arquivo(tmp_path):
-    contrato.gravar("elo-margem", conta=None, periodo=None, resumo={"n": 1},
+    contrato.gravar("prometheus-margem", conta=None, periodo=None, resumo={"n": 1},
                     itens=[{"sku": "A"}], fonte="export",
                     capturado_em="2026-10-12T09:00:00-03:00", pasta=tmp_path)
     html = painel.render(contrato.carregar_todos(tmp_path))
@@ -1156,7 +1156,7 @@ def test_painel_marca_dado_de_planilha_e_a_idade_do_arquivo(tmp_path):
     assert "arquivo de" in html
 
 
-# ----------------------------------------------------------------- elo-margem
+# ----------------------------------------------------------------- prometheus-margem
 
 def _linha(**kw):
     base = {"sku": "A1", "preco": 100.0, "custo": 40.0, "taxa": 12.0,
@@ -1268,7 +1268,7 @@ def test_margem_recusa_lista_vazia():
 
 def test_margem_passa_no_contrato_como_export(tmp_path):
     itens, faltando, lacunas, avisos, resumo = margem.calcular([_linha()])
-    d = contrato.gravar("elo-margem", conta=None, periodo=None, resumo=resumo,
+    d = contrato.gravar("prometheus-margem", conta=None, periodo=None, resumo=resumo,
                         itens=itens, faltando=faltando, lacunas=lacunas,
                         avisos=avisos, fonte="export",
                         capturado_em="2026-10-12T09:00:00-03:00", pasta=tmp_path)

@@ -67,7 +67,7 @@ tokens.backup.json
 .oauth_state
 ABRIR_NO_NAVEGADOR.txt
 RETORNO.txt
-elo-*.json
+prometheus-*.json
 painel.html
 dados.json
 __pycache__/

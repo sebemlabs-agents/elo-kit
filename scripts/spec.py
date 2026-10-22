@@ -171,7 +171,7 @@ def escrever(plano, pasta=None):
       "entenda o seu caso — é exatamente o assunto do bloco de segurança.\n")
 
     a("\n## Passo 3 — mandar os dados para cima\n")
-    a("O que sobe é o conteúdo dos arquivos `elo-*.json` desta pasta: para cada skill, as\n"
+    a("O que sobe é o conteúdo dos arquivos `prometheus-*.json` desta pasta: para cada skill, as\n"
       "linhas de `itens`, carimbadas com `conta_id` e `gerado_em`.\n")
     a("\nA rotina que já roda na sua máquina passa a fazer duas coisas em vez de uma: grava o\n"
       "arquivo local **e** envia para a tabela. O painel local continua funcionando; a nuvem\n"

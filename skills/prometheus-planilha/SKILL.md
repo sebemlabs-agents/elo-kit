@@ -1,5 +1,5 @@
 ---
-name: elo-planilha
+name: prometheus-planilha
 description: Lê qualquer planilha CSV ou XLSX do usuário — exportação de marketplace, relatório de ERP, planilha de custo feita à mão — descreve as colunas e cruza com os dados do painel. Não exige formato nenhum. Use quando o usuário mencionar planilha, arquivo, exportação, relatório baixado, XLSX, CSV, Excel, "eu tenho uma planilha com", "exportei do sistema", "minha planilha de custo", ou quando faltar um dado que nenhuma API tem — custo por SKU, dados de outro marketplace, números de ERP.
 ---
 
@@ -50,7 +50,7 @@ estime, não complete, não assuma zero.
 
 ## Passo 3 — cruzar com o que já está no painel
 
-É aqui que a planilha vira resposta. Os arquivos `elo-*.json` da pasta têm os dados do Mercado
+É aqui que a planilha vira resposta. Os arquivos `prometheus-*.json` da pasta têm os dados do Mercado
 Livre; a planilha tem o que falta. A chave do cruzamento quase sempre é o **SKU** ou o
 **MLB**.
 
@@ -70,7 +70,7 @@ Quando o cruzamento virar algo que ele vai olhar de novo, grave no contrato do p
 aparecer como bloco:
 
 ```python
-contrato.gravar("elo-margem", conta=None, periodo=None,
+contrato.gravar("prometheus-margem", conta=None, periodo=None,
                 resumo={...}, itens=[...],
                 fonte="export",
                 capturado_em=dado["capturado_em"],

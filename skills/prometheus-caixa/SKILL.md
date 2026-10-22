@@ -1,6 +1,6 @@
 ---
-name: elo-caixa
-description: Mostra quanto as vendas do Mercado Livre ainda vão liberar e em que dia cada valor cai. Somente leitura. Use quando o usuário perguntar sobre dinheiro a receber, recebimento, quando o Meli paga, liberação, fluxo de caixa, "quanto vai cair essa semana", "quanto o Meli me deve", ou pedir para atualizar o painel. Não é o saldo da carteira do Mercado Pago. Precisa da conta conectada pela skill elo-conectar-meli.
+name: prometheus-caixa
+description: Mostra quanto as vendas do Mercado Livre ainda vão liberar e em que dia cada valor cai. Somente leitura. Use quando o usuário perguntar sobre dinheiro a receber, recebimento, quando o Meli paga, liberação, fluxo de caixa, "quanto vai cair essa semana", "quanto o Meli me deve", ou pedir para atualizar o painel. Não é o saldo da carteira do Mercado Pago. Precisa da conta conectada pela skill prometheus-conectar-meli.
 ---
 
 # Dinheiro a receber — pacote Elo

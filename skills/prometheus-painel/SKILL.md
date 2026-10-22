@@ -1,11 +1,11 @@
 ---
-name: elo-painel
-description: Gera e atualiza o painel.html local a partir dos dados que as skills do pacote Elo gravaram na pasta do usuário — vendas, promoções, dinheiro a receber, devoluções e o que mais estiver presente. Use quando o usuário pedir para ver, abrir, atualizar ou regerar o painel, o dashboard ou "a tela" do pacote, ou depois de rodar qualquer skill elo-*.
+name: prometheus-painel
+description: Gera e atualiza o painel.html local a partir dos dados que as skills do pacote Elo gravaram na pasta do usuário — vendas, promoções, dinheiro a receber, devoluções e o que mais estiver presente. Use quando o usuário pedir para ver, abrir, atualizar ou regerar o painel, o dashboard ou "a tela" do pacote, ou depois de rodar qualquer skill prometheus-*.
 ---
 
 # Painel do pacote Elo
 
-Monta `painel.html` na pasta do usuário a partir dos arquivos `elo-*.json` que as skills
+Monta `painel.html` na pasta do usuário a partir dos arquivos `prometheus-*.json` que as skills
 gravaram. **Este painel nunca chama a API** — a skill coleta e grava, o painel lê e formata.
 
 ## Como usar

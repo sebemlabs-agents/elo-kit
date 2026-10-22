@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<title>Playbook de conexão — elo-kit</title>
+<title>Playbook de conexão — prometheus</title>
 <style>
   @page { size: A4; margin: 14mm 14mm 16mm; }
   * { box-sizing: border-box; }
@@ -56,8 +56,8 @@
 <div class="doc">
 
 <h1>Playbook de conexão</h1>
-<p class="sub">Como conduzir o primeiro teste do <strong>elo-kit</strong> com um seller que nunca conectou nada.</p>
-<p class="fonte">github.com/sebemlabs-agents/elo-kit · LST-17589 · 21 out 2026</p>
+<p class="sub">Como conduzir o primeiro teste do <strong>prometheus</strong> com um seller que nunca conectou nada.</p>
+<p class="fonte">github.com/sebemlabs-agents/prometheus · LST-17589 · 21 out 2026</p>
 
 <div class="regra">
   <p><strong>A regra que define o teste:</strong> quem conduz é a skill, não você.</p>
@@ -83,9 +83,9 @@
      2. Confirma que você tem o login da <strong>conta administradora</strong> do Meli (a que vê o financeiro).</p>
   <p>Do resto o próprio Claude cuida: ele confere o Python, instala se faltar (te pedindo autorização antes) e cria a pasta no lugar certo.</p>
   <p>Na call você vai rodar só isso:</p>
-  <p>Sem terminal: <b>Configurações → Plugins → + Adicionar → Adicionar marketplace → Adicionar de um repositório</b>, colando <code>sebemlabs-agents/elo-kit</code> (a forma curta; a URL inteira é recusada quando a máquina já tem o catálogo registrado). Depois instalar pela lista.</p>
-  <p class="nota">Pelo terminal, equivale a <code>claude plugin install elo-kit --marketplace sebemlabs-agents/elo-kit</code>. <b>Observe por qual caminho a pessoa vai sozinha</b> — é informação de palco.</p>
-  <p class="nota"><b>Depois de instalar, ligue a atualização automática</b> — pedindo ao Claude da pessoa: <i>"liga a atualização automática do elo-kit"</i>. Vem desligada por padrão, e sem ela nenhuma correção publicada chega na máquina dela. <b>É o passo que mais se esquece</b>, e o único cujo efeito ninguém percebe na hora.</p>
+  <p>Sem terminal: <b>Configurações → Plugins → + Adicionar → Adicionar marketplace → Adicionar de um repositório</b>, colando <code>sebemlabs-agents/prometheus</code> (a forma curta; a URL inteira é recusada quando a máquina já tem o catálogo registrado). Depois instalar pela lista.</p>
+  <p class="nota">Pelo terminal, equivale a <code>claude plugin install prometheus --marketplace sebemlabs-agents/prometheus</code>. <b>Observe por qual caminho a pessoa vai sozinha</b> — é informação de palco.</p>
+  <p class="nota"><b>Depois de instalar, ligue a atualização automática</b> — pedindo ao Claude da pessoa: <i>"liga a atualização automática do prometheus"</i>. Vem desligada por padrão, e sem ela nenhuma correção publicada chega na máquina dela. <b>É o passo que mais se esquece</b>, e o único cujo efeito ninguém percebe na hora.</p>
   <p class="nota"><b>A tela de instalar tem duas versões.</b> Uma abre menu de escopo (escolher <b>Instalar para mim</b>); a outra é a janela <b>Diretório</b>, onde se clica no <b>+</b> do cartão, na aba <b>Code</b>, sem perguntar nada. Nas duas, a aba certa é a <b>Code</b> — fora dela o pacote não roda comando nenhum. As telas lado a lado estão no guia do participante.</p>
   <p>E depois pedir pro Claude: <strong>"conecta minha conta do Mercado Livre"</strong>. Ele conduz o resto.</p>
 </div>
@@ -156,7 +156,7 @@
 <p>Com isso eu ajusto a skill e a tabela de problemas antes de segunda — e você entra na reunião podendo dizer, com número: <em>"testei com um seller que nunca tinha conectado nada; levou X minutos"</em>.</p>
 
 <footer>
-  elo-kit · playbook de condução do teste de conexão · Marciano Chula / Elo · uso interno
+  prometheus · playbook de condução do teste de conexão · Marciano Chula / Elo · uso interno
 </footer>
 
 </div>
