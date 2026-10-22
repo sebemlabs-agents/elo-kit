@@ -93,6 +93,10 @@ demora.
 Então puxe o custo **dos produtos que estão sendo analisados** — os que apareceram na fila
 de promoções, os que ela perguntou. Não varra o catálogo.
 
+O custo sai do **detalhe do produto** (`GET /produtos/{id}`), que traz preço de custo,
+custo médio e o histórico por data **numa chamada só** — e isso importa, porque o limite é
+da conta inteira.
+
 O custo importado vira `prometheus-custos.json` na pasta, com `capturado_em` — que é a
 idade do dado. **Sempre diga essa idade quando usar o custo numa conta de margem.** Custo
 de três semanas atrás apresentado como de hoje é decisão errada com cara de certa.

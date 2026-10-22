@@ -1849,3 +1849,39 @@ def test_redirecionamento_para_outro_caminho_do_mesmo_dominio_e_aceito():
     with pytest.raises(seguro.RetornoDeOutroEndereco):
         shopee.ler_retorno("https://outro-dominio.com/?code=X",
                            "https://loja.vercel.app/")
+
+
+def test_custo_vem_do_detalhe_do_produto_e_nao_do_endpoint_de_gravar(monkeypatch):
+    """Descoberto contra o servidor em 22/10/2026, na vespera da gravacao.
+
+    O codigo lia /produtos/{id}/preco. Esse recurso existe, mas e de GRAVAR
+    preco: em GET responde 400, "O metodo GET nao e compativel com o recurso
+    solicitado". A skill prometia o custo que fecha a margem e entregava erro
+    em 100% das vezes - e nenhum teste pegava, porque nenhum chamava a API.
+
+    O detalhe do produto traz custo, custo medio e historico numa chamada so,
+    o que importa porque o limite de chamadas e da conta inteira."""
+    chamadas = []
+
+    def falso(metodo, caminho, token=None, **p):
+        chamadas.append(caminho)
+        return {"sku": "ABC",
+                "precos": {"preco": 100, "precoCusto": 50, "precoCustoMedio": 48},
+                "custos": [{"data": "2026-01-01", "precoCusto": 40},
+                           {"data": "2026-10-01", "precoCusto": 50}]}
+
+    monkeypatch.setattr(olist, "api", falso)
+    r = olist.custo_do_produto(77, token="t")
+    assert chamadas == ["/produtos/77"], "tem de ler o detalhe, numa chamada so"
+    assert not any("/preco" in c for c in chamadas), "endpoint de gravar preco de novo"
+    assert r["preco_custo"] == 50 and r["custo_medio"] == 48
+    assert r["custo_mais_recente_em"] == "2026-10-01"
+
+
+def test_produto_sem_custo_cadastrado_fica_sem_margem_e_nao_com_zero(monkeypatch):
+    """Dado ausente nao e zero: margem calculada com custo zero parece otima."""
+    monkeypatch.setattr(olist, "api",
+                        lambda *a, **k: {"sku": "X", "precos": {}, "custos": []})
+    r = olist.custo_do_produto(1, token="t")
+    assert r["preco_custo"] is None and r["custo_medio"] is None
+    assert r["custo_mais_recente_em"] is None

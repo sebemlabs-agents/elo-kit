@@ -226,12 +226,28 @@ def api(metodo, caminho, token=None, **parametros):
 
 
 def custo_do_produto(id_produto, token):
-    """GET /produtos/{id}/preco devolve precoCusto e precoCustoMedio."""
-    d = api("GET", "/produtos/%s/preco" % id_produto, token=token)
+    """Le o custo no DETALHE do produto: GET /produtos/{id}.
+
+    Caminho descoberto contra o servidor em 22/10/2026, e o anterior estava
+    errado de um jeito que nenhum teste pegava: `/produtos/{id}/preco` existe,
+    mas e endpoint de GRAVAR preco. Em GET ele responde 400 com "O metodo GET
+    nao e compativel com o recurso solicitado". A skill inteira prometia um
+    custo que nunca chegaria.
+
+    O detalhe traz os dois de uma vez, numa chamada so — o que importa quando
+    o limite de chamadas e da conta inteira:
+      precos.precoCusto, precos.precoCustoMedio
+      custos[] com o historico por data"""
+    d = api("GET", "/produtos/%s" % id_produto, token=token)
+    precos = d.get("precos") or {}
+    historico = d.get("custos") or []
     return {
         "id_produto": id_produto,
-        "preco_custo": d.get("precoCusto"),
-        "custo_medio": d.get("precoCustoMedio"),
+        "sku": d.get("sku"),
+        "preco_custo": precos.get("precoCusto"),
+        "custo_medio": precos.get("precoCustoMedio"),
+        "preco_venda": precos.get("preco"),
+        "custo_mais_recente_em": (historico[-1].get("data") if historico else None),
     }
 
 
