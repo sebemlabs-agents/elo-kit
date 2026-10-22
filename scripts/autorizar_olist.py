@@ -62,6 +62,31 @@ def passo1():
     return 0
 
 
+def _consumir(arquivo, comando):
+    """Gasta a tentativa ANTES da troca, nao depois.
+
+    O unlink e atomico: se a pessoa rodar duas vezes ao mesmo tempo, quem
+    apagar primeiro leva, e a outra execucao nao acha tentativa nenhuma.
+    Consumir depois da troca deixava as duas passarem — e o refresh destes
+    canais e de uso unico, entao a segunda troca derrubaria a conexao que
+    acabou de funcionar.
+
+    Falha ao apagar NAO e ignorada: sem conseguir gastar a tentativa, nao da
+    para garantir uso unico, e o certo e parar."""
+    try:
+        arquivo.unlink()
+    except FileNotFoundError:
+        raise SystemExit(
+            "PARADO: esta conexao ja foi concluida (ou outra execucao a levou).\n"
+            "Se precisar conectar de novo, comece pelo passo 1:  %s" % comando)
+    except OSError:
+        raise SystemExit(
+            "PARADO: nao consegui encerrar a tentativa em andamento, e sem isso "
+            "nao da para garantir que ela seja usada uma unica vez.\n"
+            "Apague este arquivo e comece pelo passo 1:\n  %s\n  %s"
+            % (arquivo, comando))
+
+
 def _estado_pendente():
     """Devolve o state da tentativa em andamento, ou None se nao houver."""
     try:
@@ -84,17 +109,15 @@ def passo2(caminho):
         raise SystemExit(
             "PARADO: nao ha conexao em andamento (ou ela ficou velha demais).\n"
             "Comece pelo passo 1:  python3 autorizar_olist.py")
+    # Conferir o endereco ANTES de gastar a tentativa: colar errado e o erro
+    # mais comum, e nao custa refazer o passo 1 por causa disso.
     try:
         code = olist.ler_retorno(endereco, redirect, esperado)
     except (ValueError, seguro.RetornoDeOutroEndereco) as e:
         raise SystemExit("PARADO: %s" % e)
+    _consumir(ESTADO, "python3 autorizar_olist.py")
     r = olist.trocar_code_por_token(code, cid, segredo, redirect)
     Path(caminho).write_text("", encoding="utf-8")
-    # Uso unico: gasto o state para a mesma URL nao servir duas vezes.
-    try:
-        ESTADO.unlink()
-    except OSError:
-        pass
     print("\nConectado. Acesso salvo em tokens-olist.json (conteudo nao mostrado).")
     print("  retorno: esvaziado")
     print("\nA renovacao da Olist vence em 1 DIA — e normal, e nao e erro seu.")

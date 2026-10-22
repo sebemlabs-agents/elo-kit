@@ -64,6 +64,31 @@ def passo1():
     return 0
 
 
+def _consumir(arquivo, comando):
+    """Gasta a tentativa ANTES da troca, nao depois.
+
+    O unlink e atomico: se a pessoa rodar duas vezes ao mesmo tempo, quem
+    apagar primeiro leva, e a outra execucao nao acha tentativa nenhuma.
+    Consumir depois da troca deixava as duas passarem — e o refresh destes
+    canais e de uso unico, entao a segunda troca derrubaria a conexao que
+    acabou de funcionar.
+
+    Falha ao apagar NAO e ignorada: sem conseguir gastar a tentativa, nao da
+    para garantir uso unico, e o certo e parar."""
+    try:
+        arquivo.unlink()
+    except FileNotFoundError:
+        raise SystemExit(
+            "PARADO: esta conexao ja foi concluida (ou outra execucao a levou).\n"
+            "Se precisar conectar de novo, comece pelo passo 1:  %s" % comando)
+    except OSError:
+        raise SystemExit(
+            "PARADO: nao consegui encerrar a tentativa em andamento, e sem isso "
+            "nao da para garantir que ela seja usada uma unica vez.\n"
+            "Apague este arquivo e comece pelo passo 1:\n  %s\n  %s"
+            % (arquivo, comando))
+
+
 def _pedido_em_andamento():
     """Diz se o passo 1 foi dado aqui e ainda vale."""
     try:
@@ -90,17 +115,15 @@ def passo2(caminho):
     if not endereco:
         raise SystemExit("PARADO: %s esta vazio. Cole a barra do navegador e salve."
                          % caminho)
+    # Conferir o endereco ANTES de gastar a tentativa: colar errado e o erro
+    # mais comum, e nao custa refazer o passo 1 por causa disso.
     try:
         code, loja = shopee.ler_retorno(endereco, redirect)
     except ValueError as e:
         raise SystemExit("PARADO: %s" % e)
+    _consumir(PEDIDO, "python3 autorizar_shopee.py")
     r = shopee.trocar_code_por_token(code, loja, pid, chave)
     Path(caminho).write_text("", encoding="utf-8")
-    # Uso unico: gasto o pedido para a mesma URL nao ser trocada duas vezes.
-    try:
-        PEDIDO.unlink()
-    except OSError:
-        pass
     print("\nConectado. Acesso salvo em tokens-shopee.json (conteudo nao mostrado).")
     print("  loja   : %s" % r["shop_id"])
     print("  retorno: esvaziado")

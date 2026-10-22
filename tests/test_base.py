@@ -1780,3 +1780,35 @@ def test_tudo_que_e_sensivel_tambem_fica_fora_do_git(tmp_path):
     gi = (tmp_path / ".gitignore").read_text(encoding="utf-8").splitlines()
     for nome in pasta_mod.ARQUIVOS_SENSIVEIS:
         assert nome in gi, "%s e sensivel mas nao esta no .gitignore" % nome
+
+
+def test_tentativa_e_gasta_antes_da_troca_e_nao_depois(tmp_path, monkeypatch):
+    """Consumir depois deixava duas execucoes simultaneas trocarem o mesmo code.
+
+    O refresh destes canais e de uso unico: a segunda troca derrubaria a
+    conexao que a primeira acabou de criar."""
+    import autorizar_shopee as a
+    pedido = tmp_path / ".oauth_state_shopee"
+    monkeypatch.setattr(a, "PEDIDO", pedido)
+    pedido.write_text("{}", encoding="utf-8")
+    a._consumir(pedido, "python3 autorizar_shopee.py")
+    assert not pedido.exists(), "a tentativa tem de ser gasta"
+    # Segunda execucao: nao acha tentativa e para, em vez de trocar de novo.
+    with pytest.raises(SystemExit) as e:
+        a._consumir(pedido, "python3 autorizar_shopee.py")
+    assert "passo 1" in str(e.value)
+
+
+def test_falha_ao_gastar_a_tentativa_para_o_fluxo(tmp_path, monkeypatch):
+    """Sem conseguir gastar, nao da para garantir uso unico — entao para."""
+    import autorizar_olist as a
+    estado = tmp_path / ".oauth_state_olist"
+    estado.write_text("{}", encoding="utf-8")
+
+    class _Travado(type(estado)):
+        def unlink(self, *a, **k):
+            raise OSError("travado")
+
+    with pytest.raises(SystemExit) as e:
+        a._consumir(_Travado(estado), "python3 autorizar_olist.py")
+    assert "uma unica vez" in str(e.value)
