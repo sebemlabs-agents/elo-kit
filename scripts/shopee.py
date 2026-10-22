@@ -129,20 +129,21 @@ def _colher(q):
 def ler_retorno(endereco, cadastrado=None):
     """Tira o code e o shop_id do endereco que a pessoa colou.
 
-    Ela cola a barra inteira do navegador; a gente nao pede para ela achar o
-    pedaco certo. Quando o endereco cadastrado e conhecido, confere que o
-    retorno veio DAQUELE DOMINIO.
+    Procura em dois lugares. O segundo foi aprendido num ensaio em 22/10/2026:
+    aplicativo com login redireciona a visita sem sessao e leva a URL original
+    DENTRO de um parametro, percent-encoded (`?redirect=%2F%3Fcode%3D...`).
 
-    Procura o code em dois lugares, e o segundo foi aprendido num ensaio em
-    22/10/2026: aplicativo com login costuma redirecionar a visita sem sessao
-    e levar a URL original DENTRO de um parametro, percent-encoded
-    (`?redirect=%2F%3Fcode%3D...`). O code esta la, so que um nivel abaixo.
-    Sem isto o pacote dizia "nao achei o code" para alguem que tinha
-    autorizado certinho - e a pessoa nao tem como adivinhar.
+    Mas so aceita o nivel de dentro quando ele aponta para o MESMO lugar: um
+    caminho relativo, sem host, ou o proprio dominio cadastrado. Sem essa
+    regra, bastava alguem convencer a pessoa a colar
+    `https://dominio-dela/login?x=https%3A%2F%2Foutro%2F%3Fcode%3D...` para o
+    pacote colher um code de outra procedencia — a origem de fora estava
+    certa, e so a de dentro e que nao.
 
-    A Shopee nao tem parametro `state`: o `redirect` vai dentro do endereco
-    assinado com a partner_key, entao ninguem de fora monta um link que
-    devolva para o endereco da pessoa."""
+    A Shopee nao tem parametro `state`. O vinculo com a tentativa e local:
+    `.oauth_state_shopee`, de uso unico e com prazo, exigido pelo
+    autorizar_shopee.py. Nao e criptografico, e esta e uma limitacao
+    conhecida."""
     if cadastrado:
         seguro.conferir_origem(endereco, cadastrado)
     q = urllib.parse.parse_qs(urllib.parse.urlparse(endereco).query)
@@ -151,9 +152,17 @@ def ler_retorno(endereco, cadastrado=None):
         for valores in q.values():
             for v in valores:
                 for tentativa in (v, urllib.parse.unquote(v)):
-                    dentro = urllib.parse.parse_qs(
-                        urllib.parse.urlparse(tentativa).query)
-                    c, l = _colher(dentro)
+                    alvo = urllib.parse.urlparse(tentativa)
+                    if alvo.netloc:
+                        if not cadastrado:
+                            continue
+                        try:
+                            seguro.conferir_origem(tentativa, cadastrado)
+                        except seguro.RetornoDeOutroEndereco:
+                            continue
+                        except ValueError:
+                            continue
+                    c, l = _colher(urllib.parse.parse_qs(alvo.query))
                     if c:
                         return c, int(l) if l else (int(loja) if loja else None)
     if not code:

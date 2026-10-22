@@ -1885,3 +1885,46 @@ def test_produto_sem_custo_cadastrado_fica_sem_margem_e_nao_com_zero(monkeypatch
     r = olist.custo_do_produto(1, token="t")
     assert r["preco_custo"] is None and r["custo_medio"] is None
     assert r["custo_mais_recente_em"] is None
+
+
+# --------------------------------- negativos dos afrouxamentos da 1.1.1
+
+CADASTRADO = "https://loja-dela.app/"
+
+
+def test_code_aninhado_so_vale_quando_aponta_para_o_mesmo_lugar():
+    """O afrouxamento que fez a conexao funcionar tambem abria uma porta.
+
+    Procurar o code dentro de qualquer parametro aceitava
+    `https://loja-dela.app/login?x=https%3A%2F%2Fatacante%2F%3Fcode%3D...`:
+    a origem de FORA estava certa, e so a de dentro e que nao. Bastava
+    convencer a pessoa a colar essa barra.
+
+    Vale o nivel de dentro quando ele e relativo (o caso real do ensaio) ou
+    quando aponta para o proprio dominio cadastrado."""
+    assert shopee.ler_retorno(
+        "https://loja-dela.app/login?redirect=%2F%3Fcode%3DBOM%26shop_id%3D7",
+        CADASTRADO) == ("BOM", 7)
+    assert shopee.ler_retorno(
+        "https://loja-dela.app/login?r=https%3A%2F%2Floja-dela.app%2F%3Fcode%3DBOM",
+        CADASTRADO) == ("BOM", None)
+    with pytest.raises(ValueError):
+        shopee.ler_retorno(
+            "https://loja-dela.app/login?x=https%3A%2F%2Fatacante.example%2F%3Fcode%3DMAU",
+            CADASTRADO)
+
+
+def test_sem_endereco_cadastrado_nao_colhe_code_de_outro_host():
+    """Sem com o que comparar, o nivel de dentro com host nao e confiavel."""
+    with pytest.raises(ValueError):
+        shopee.ler_retorno(
+            "https://qualquer.app/login?x=https%3A%2F%2Fatacante.example%2F%3Fcode%3DMAU")
+
+
+def test_o_vinculo_da_shopee_com_a_tentativa_e_local_e_de_uso_unico():
+    """A Shopee nao tem `state`. O vinculo existe, mas e local e nao
+    criptografico — limitacao conhecida, registrada na 1.1.1."""
+    import autorizar_shopee as a
+    assert a.PEDIDO.name == ".oauth_state_shopee"
+    assert a.VALIDADE_PEDIDO > 0
+    assert hasattr(a, "_consumir")
