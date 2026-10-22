@@ -22,9 +22,21 @@ quando não são ditas antes.
 **A primeira linha é a que trava gente.** A Shopee recusa `.invalid` e recusa nome sem
 ponto — conferido na tela em 22/10/2026. Ela quer um endereço que exista.
 
-**O que serve como endereço:** qualquer domínio da pessoa, ou **o endereço do projeto
-Supabase dela** — a raiz do projeto já basta, não precisa criar função nenhuma. Se ela
-não tiver nem um nem outro, ela não conecta a Shopee hoje; siga com o resto e volte depois.
+**O que serve como endereço:** a raiz do projeto Supabase dela, o domínio dela, ou até o
+endereço de um aplicativo que ela já tenha no ar. Não precisa criar função nenhuma.
+
+> ### Aplicativo com login redireciona — e está tudo bem
+>
+> Aplicativo de verdade recebe a visita, vê que não tem sessão e manda para `/login`,
+> levando a URL original **dentro de um parâmetro, codificada** (`?redirect=%2F%3Fcode%3D…`).
+>
+> **O código não se perde nisso** — ele só fica um nível abaixo, e o pacote sabe procurar lá.
+> Se ela colar uma barra cheia de `%`, está certo: mande colar assim mesmo.
+>
+> Conferido em ensaio, 22/10/2026, com um aplicativo real em produção: a conexão fechou.
+
+Se ela não tiver nem domínio parado nem Supabase, ela não conecta a Shopee hoje; siga com o
+resto e volte depois.
 
 ## Mesma pasta do Mercado Livre — não crie outra
 
@@ -90,7 +102,13 @@ SHOPEE_PARTNER_KEY=
 SHOPEE_REDIRECT_URI=
 ```
 
-O `SHOPEE_REDIRECT_URI` é o mesmo endereço cadastrado no aplicativo, **idêntico**.
+O `SHOPEE_REDIRECT_URI` é o mesmo endereço cadastrado no aplicativo, **idêntico — caractere
+por caractere, inclusive a barra no fim**.
+
+> **Se ela errar, a Shopee avisa.** Ela diz que o endereço não condiz com o do console, e é
+> um erro claro, não silencioso. Conserte a linha e **gere o link de novo**: o endereço vai
+> dentro da assinatura, então o link anterior deixa de valer. Nada se perde e nada fica sujo
+> — conferido em ensaio.
 
 ## 4. Autorizar
 
@@ -108,6 +126,29 @@ Grava `ABRIR_SHOPEE.txt`. **Não mostre o conteúdo.** Explique a ela:
 
 **Peça para fazer sem demora: o código vale 10 minutos e uma vez só.** Se expirar, não é
 erro dela — é só gerar de novo.
+
+> ### Se a barra vier cheia de `%`, está CERTA
+>
+> Isto é para você, não para ela. Aplicativo com login redireciona a visita sem sessão e
+> leva a URL original dentro de um parâmetro, codificada. A barra fica assim:
+>
+> ```
+> https://loja-dela.app/login?redirect=%2F%3Fcode%3D...%26shop_id%3D...
+> ```
+>
+> **Isso não é bug, não é URL quebrada, e não está faltando nada.** `%2F` é `/`, `%3F` é
+> `?`, `%3D` é `=`. O código está ali, um nível abaixo, e o `shopee.py` sabe procurar lá.
+>
+> Portanto, ao ver uma barra assim:
+>
+> - **Não diga a ela que deu errado.** Deu certo.
+> - **Não tente consertar, limpar ou recortar o endereço.** Editar é o que quebra.
+> - **Não peça para ela autorizar de novo.** O código é de uso único; refazer gasta o que
+>   estava bom.
+> - **Mande colar exatamente como está**, com os `%` e tudo, e rode o passo seguinte.
+>
+> Conferido em ensaio, 22/10/2026: a barra tinha `%`, parecia defeito, e a conexão fechou
+> na primeira tentativa.
 
 ```
 python3 autorizar_shopee.py --arquivo RETORNO_SHOPEE.txt
@@ -131,7 +172,9 @@ prometa a data exata — o pacote não controla esse relógio, a Shopee controla
 | Sintoma | Causa | O que fazer |
 |---|---|---|
 | A tela recusa o endereço de retorno | `.invalid`, `http://` ou nome sem ponto | precisa ser HTTPS com domínio de verdade. O endereço do Supabase dela serve |
+| **A Shopee diz que a URL não condiz com a do console** | o `SHOPEE_REDIRECT_URI` não é idêntico ao cadastrado | **é o erro mais comum, e a Shopee avisa com clareza.** Corrija a linha em `credenciais.txt` e **gere o link de novo** — o endereço vai dentro da assinatura, então o link antigo não serve. Conferido em ensaio, 22/10/2026 |
 | `invalid_code`, ou "expirou" | o código vale 10 min e uma vez só | gere o link de novo e faça os dois passos seguidos |
+| **"Nao achei o code nesse endereco"**, e ela jura que autorizou | ela colou o endereço de **outra aba**, ou cortou a barra | o pacote já procura o código dentro de redirecionamento codificado. Peça a barra inteira, com os `%` e tudo |
 | A Shopee recusa a assinatura | `partner_id` e chave de ambientes diferentes | a chave de teste não funciona em produção, e vice-versa |
 | Conectou e caiu em 4 horas | não veio `refresh_token` | confira a autorização; sem ele a conexão não se renova |
 | Caiu depois de semanas | passou de 30 dias sem uso | refazer a autorização. É esperado |

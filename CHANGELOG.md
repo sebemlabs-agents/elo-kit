@@ -23,6 +23,24 @@
 > 4. anotar a mudança aqui embaixo
 > 5. publicar pelo Cypher Guard
 
+## 1.1.1 — 22 de outubro de 2026
+
+Saiu de um ensaio da conexão Shopee feito na véspera da gravação, com conta e
+aplicativo reais. Três coisas que a documentação não contava:
+
+- **A barra de retorno pode vir cheia de `%`, e está certa.** Aplicativo com login
+  redireciona a visita sem sessão e leva a URL original dentro de um parâmetro,
+  codificada. O código está lá, um nível abaixo — o pacote passou a procurar nos dois
+  níveis. Antes ele dizia "não achei o code" para quem tinha autorizado certinho, e a
+  pessoa não tinha como adivinhar o motivo. A skill agora manda o assistente **não**
+  chamar isso de erro, **não** tentar consertar o endereço e **não** pedir nova
+  autorização: o código é de uso único, e refazer gasta o que estava bom.
+- **A conferência de retorno passou a comparar domínio, não caminho.** Exigir o caminho
+  idêntico fazia o pacote recusar retorno legítimo de qualquer aplicativo que redireciona.
+  A proteção que importa é o domínio.
+- **A Shopee avisa com clareza quando o endereço não bate com o console.** A skill dizia o
+  contrário, que ela recusava em silêncio. Corrigido, com o que fazer.
+
 ## 1.1.0 — 22 de outubro de 2026
 
 - **Conexão com a Shopee.** Mesmo molde do Mercado Livre, só leitura. O endereço de retorno

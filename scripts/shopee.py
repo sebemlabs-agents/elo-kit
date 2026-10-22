@@ -120,28 +120,47 @@ def link_de_autorizacao(partner_id, partner_key, redirect, agora=None):
     return "%s%s?%s" % (HOST, CAMINHO_AUTH, q)
 
 
+def _colher(q):
+    code = (q.get("code") or [""])[0]
+    loja = (q.get("shop_id") or q.get("main_account_id") or [""])[0]
+    return code, loja
+
+
 def ler_retorno(endereco, cadastrado=None):
     """Tira o code e o shop_id do endereco que a pessoa colou.
 
     Ela cola a barra inteira do navegador; a gente nao pede para ela achar o
     pedaco certo. Quando o endereco cadastrado e conhecido, confere que o
-    retorno veio DALI — pega tanto a URL copiada da aba errada (o erro comum)
-    quanto um `?code=` vindo de outro lugar.
+    retorno veio DAQUELE DOMINIO.
+
+    Procura o code em dois lugares, e o segundo foi aprendido num ensaio em
+    22/10/2026: aplicativo com login costuma redirecionar a visita sem sessao
+    e levar a URL original DENTRO de um parametro, percent-encoded
+    (`?redirect=%2F%3Fcode%3D...`). O code esta la, so que um nivel abaixo.
+    Sem isto o pacote dizia "nao achei o code" para alguem que tinha
+    autorizado certinho - e a pessoa nao tem como adivinhar.
 
     A Shopee nao tem parametro `state`: o `redirect` vai dentro do endereco
     assinado com a partner_key, entao ninguem de fora monta um link que
-    devolva para o endereco da pessoa. A conferencia de origem e o que
-    substitui o state aqui."""
+    devolva para o endereco da pessoa."""
     if cadastrado:
         seguro.conferir_origem(endereco, cadastrado)
     q = urllib.parse.parse_qs(urllib.parse.urlparse(endereco).query)
-    code = (q.get("code") or [""])[0]
+    code, loja = _colher(q)
+    if not code:
+        for valores in q.values():
+            for v in valores:
+                for tentativa in (v, urllib.parse.unquote(v)):
+                    dentro = urllib.parse.parse_qs(
+                        urllib.parse.urlparse(tentativa).query)
+                    c, l = _colher(dentro)
+                    if c:
+                        return c, int(l) if l else (int(loja) if loja else None)
     if not code:
         raise ValueError(
             "Nao achei o code nesse endereco. Cole a barra INTEIRA do navegador "
-            "depois de autorizar — ela tem ?code=... e &shop_id=..."
+            "depois de autorizar - ela tem code=... e shop_id=..."
         )
-    loja = (q.get("shop_id") or q.get("main_account_id") or [""])[0]
     return code, int(loja) if loja else None
 
 

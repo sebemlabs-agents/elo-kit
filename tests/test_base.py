@@ -1812,3 +1812,30 @@ def test_falha_ao_gastar_a_tentativa_para_o_fluxo(tmp_path, monkeypatch):
     with pytest.raises(SystemExit) as e:
         a._consumir(_Travado(estado), "python3 autorizar_olist.py")
     assert "uma unica vez" in str(e.value)
+
+
+def test_code_sobrevive_ao_redirecionamento_do_app_da_pessoa(tmp_path):
+    """Ensaio de 22/10/2026, com aplicativo real em producao.
+
+    O app recebeu a visita sem sessao, mandou para /login e levou a URL
+    original DENTRO de um parametro, percent-encoded. O code estava la, um
+    nivel abaixo - e o pacote dizia "nao achei o code" para alguem que tinha
+    autorizado certinho. Quem nao sabe o que e percent-encoding nao tem como
+    adivinhar isso, e desistiria da conexao."""
+    nivel_de_cima = "https://loja.vercel.app/?code=ABC123&shop_id=99"
+    aninhado = "https://loja.vercel.app/login?redirect=%2F%3Fcode%3DABC123%26shop_id%3D99"
+    assert shopee.ler_retorno(nivel_de_cima) == ("ABC123", 99)
+    assert shopee.ler_retorno(aninhado) == ("ABC123", 99)
+
+
+def test_redirecionamento_para_outro_caminho_do_mesmo_dominio_e_aceito():
+    """O dominio e onde mora a protecao; o caminho muda a cada redirect.
+
+    Exigir caminho identico fazia o pacote recusar retorno legitimo de
+    qualquer aplicativo com login - conferido no mesmo ensaio."""
+    assert shopee.ler_retorno(
+        "https://loja.vercel.app/login?code=X&shop_id=7",
+        "https://loja.vercel.app/") == ("X", 7)
+    with pytest.raises(seguro.RetornoDeOutroEndereco):
+        shopee.ler_retorno("https://outro-dominio.com/?code=X",
+                           "https://loja.vercel.app/")

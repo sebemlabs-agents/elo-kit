@@ -140,15 +140,23 @@ def resumo(endereco):
 
 
 def conferir_origem(endereco, cadastrado):
-    """Recusa retorno que nao veio do endereco cadastrado no canal.
+    """Recusa retorno que nao veio do dominio cadastrado no canal.
 
-    Compara esquema, host, porta e caminho; ignora a query, que e justamente
-    a parte que muda. Nunca ecoa a query na mensagem de erro."""
-    if _partes(endereco) != _partes(cadastrado):
+    Compara esquema, host e porta. NAO compara o caminho, e isso foi aprendido
+    num ensaio em 22/10/2026: o endereco cadastrado era a raiz de um aplicativo
+    real, e o aplicativo redirecionou a visita sem sessao para /login. O
+    dominio estava certo; so o caminho mudou no meio. Exigir o caminho fazia o
+    pacote recusar um retorno legitimo.
+
+    O dominio e onde mora a protecao: quem controla outro caminho no dominio da
+    pessoa ja esta dentro. Nunca ecoa a query, que carrega o code."""
+    e1, h1, p1, _ = _partes(endereco)
+    e2, h2, p2, _ = _partes(cadastrado)
+    if (e1, h1, p1) != (e2, h2, p2):
         raise RetornoDeOutroEndereco(
             "Esse endereco nao veio de onde deveria. O canal foi cadastrado "
             "para devolver em %s, e o que voce colou e de %s.\n"
             "Cole a barra do navegador da pagina que abriu DEPOIS de autorizar "
-            "— nao o endereco de outra aba." % (resumo(cadastrado), resumo(endereco))
+            "- nao o endereco de outra aba." % (resumo(cadastrado), resumo(endereco))
         )
     return True
