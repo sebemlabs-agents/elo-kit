@@ -1273,3 +1273,85 @@ def test_margem_passa_no_contrato_como_export(tmp_path):
                         avisos=avisos, fonte="export",
                         capturado_em="2026-10-12T09:00:00-03:00", pasta=tmp_path)
     assert d["fonte"] == "export" and d["capturado_em"]
+
+
+# ------------------------------------------------------------------ shopee
+#
+# A Shopee assina cada chamada com HMAC-SHA256 sobre partner_id + caminho +
+# timestamp. Errar a base da assinatura e o erro mais caro: ela recusa sem
+# dizer por que. Host BR confirmado no Horus: openplatform.shopee.com.br
+
+import shopee  # noqa: E402
+
+
+def test_assinatura_e_hmac_do_partner_key_sobre_id_caminho_e_hora():
+    import hmac, hashlib
+    esperado = hmac.new(b"chave-secreta", b"123/api/v2/shop/auth_partner1700000000",
+                        hashlib.sha256).hexdigest()
+    assert shopee.assinar(123, "/api/v2/shop/auth_partner", 1700000000,
+                          "chave-secreta") == esperado
+
+
+def test_link_de_autorizacao_leva_assinatura_e_retorno():
+    from urllib.parse import urlparse, parse_qs
+    url = shopee.link_de_autorizacao(123, "chave", "https://x.supabase.co",
+                                     agora=1700000000)
+    q = parse_qs(urlparse(url).query)
+    assert urlparse(url).netloc == "openplatform.shopee.com.br"
+    assert q["partner_id"] == ["123"]
+    assert q["timestamp"] == ["1700000000"]
+    assert q["redirect"] == ["https://x.supabase.co"]
+    assert q["sign"] == [shopee.assinar(123, shopee.CAMINHO_AUTH, 1700000000, "chave")]
+
+
+def test_recusa_retorno_que_nao_e_https():
+    """A Shopee exige dominio HTTPS real — .invalid foi recusado no teste de 22/10."""
+    for ruim in ("http://x.supabase.co", "sebem.invalid", "https://sebemequipamentos"):
+        with pytest.raises(ValueError):
+            shopee.link_de_autorizacao(123, "chave", ruim)
+
+
+def test_recusa_dominio_reservado_mesmo_com_https_e_ponto():
+    """O habito do Meli e escrever .invalid. Ele passa no teste de forma e falha
+    na Shopee, com mensagem que nao diz a causa — entao paramos aqui."""
+    for ruim in ("https://sebem.invalid/callback", "https://loja.test",
+                 "https://x.example", "https://algo.localhost"):
+        with pytest.raises(ValueError, match="(?i)invalid|reservado"):
+            shopee.link_de_autorizacao(123, "chave", ruim)
+
+
+def test_le_codigo_e_loja_do_endereco_colado():
+    code, shop = shopee.ler_retorno(
+        "https://x.supabase.co/?code=6851496f48775a69&shop_id=433434010")
+    assert code == "6851496f48775a69"
+    assert shop == 433434010
+
+
+def test_retorno_sem_code_explica_em_vez_de_quebrar():
+    with pytest.raises(ValueError, match="code"):
+        shopee.ler_retorno("https://x.supabase.co/")
+
+
+def test_cliente_recusa_qualquer_metodo_que_nao_seja_get():
+    for metodo in ("POST", "PUT", "DELETE", "patch"):
+        with pytest.raises(PermissionError):
+            shopee.api(metodo, "/api/v2/order/get_order_list")
+
+
+def test_gitignore_e_protecao_cobrem_os_arquivos_da_shopee(tmp_path):
+    """O token da Shopee e tao sensivel quanto o do Meli — e nasce depois."""
+    for nome in ("tokens-shopee.json", "ABRIR_SHOPEE.txt", "RETORNO_SHOPEE.txt"):
+        (tmp_path / nome).write_text("x", encoding="utf-8")
+        assert nome in pasta_mod.ARQUIVOS_SENSIVEIS
+    pasta_mod.preparar(tmp_path)
+    gi = (tmp_path / ".gitignore").read_text(encoding="utf-8")
+    for nome in ("tokens-shopee.json", "ABRIR_SHOPEE.txt", "RETORNO_SHOPEE.txt"):
+        assert nome in gi
+
+
+def test_credenciais_trazem_o_bloco_da_shopee(tmp_path):
+    pasta_mod.preparar(tmp_path)
+    texto = (tmp_path / "credenciais.txt").read_text(encoding="utf-8")
+    for chave in ("SHOPEE_PARTNER_ID", "SHOPEE_PARTNER_KEY", "SHOPEE_REDIRECT_URI"):
+        assert chave in texto
+    assert "nao aceita .invalid" in texto.lower() or "NAO aceita .invalid" in texto

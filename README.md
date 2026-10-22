@@ -100,6 +100,7 @@ deve?"*, *"atualiza o painel"*.
 | Skill | O que entrega |
 |---|---|
 | `prometheus-conectar-meli` | acesso só-leitura à sua conta, na sua pasta |
+| `prometheus-conectar-shopee` | o mesmo para a Shopee — precisa de um domínio HTTPS seu |
 | `prometheus-painel` | o painel local com os blocos das skills que você rodou |
 | `prometheus-criativos` | produto cru vira título, descrição, benefícios e objeções — **não precisa de conexão nenhuma** |
 | `prometheus-promocoes` | a fila do que termina nos próximos dias, com anúncios dentro e desconto mínimo |

@@ -43,6 +43,9 @@ ARQUIVOS_SENSIVEIS = (
     ".oauth_state",
     "ABRIR_NO_NAVEGADOR.txt",
     "RETORNO.txt",
+    "tokens-shopee.json",
+    "ABRIR_SHOPEE.txt",
+    "RETORNO_SHOPEE.txt",
 )
 
 # Conjunto FECHADO de motivos. O relato nunca carrega texto de excecao nem
@@ -67,6 +70,9 @@ tokens.backup.json
 .oauth_state
 ABRIR_NO_NAVEGADOR.txt
 RETORNO.txt
+tokens-shopee.json
+ABRIR_SHOPEE.txt
+RETORNO_SHOPEE.txt
 prometheus-*.json
 painel.html
 dados.json
@@ -85,6 +91,16 @@ MELI_CLIENT_SECRET=
 # Precisa ser IDENTICO ao "URL de redirecionamento" cadastrado na aplicacao.
 # .invalid e um dominio reservado que nunca abre: o code nao sai do seu navegador.
 MELI_REDIRECT_URI=%(uri)s
+#
+# ---------------------------------------------------------------------------
+# Shopee — so preencha se voce for conectar a Shopee tambem.
+# (open.shopee.com -> Open Platform Console -> App List)
+#
+# A Shopee NAO aceita .invalid: o retorno precisa ser um dominio HTTPS de
+# verdade. O endereco do seu projeto Supabase serve.
+SHOPEE_PARTNER_ID=
+SHOPEE_PARTNER_KEY=
+SHOPEE_REDIRECT_URI=
 """
 
 URI_PADRAO = "https://radar-meli.invalid/callback"
