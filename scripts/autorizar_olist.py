@@ -120,9 +120,19 @@ def passo2(caminho):
     Path(caminho).write_text("", encoding="utf-8")
     print("\nConectado. Acesso salvo em tokens-olist.json (conteudo nao mostrado).")
     print("  retorno: esvaziado")
-    print("\nA renovacao da Olist vence em 1 DIA — e normal, e nao e erro seu.")
-    print("Por isso o custo e importado para a pasta: o painel segue funcionando")
-    print("depois que a conexao vence. Para trazer custo novo, reconecte.")
+    # Nao afirmar prazo: dizer o que o servidor mandou nesta conexao. O numero
+    # varia com a configuracao da conta, e cada renovacao reinicia a contagem.
+    import time as _t
+    agora = int(_t.time())
+    horas = (r.get("refresh_expires_at", 0) - agora) / 3600.0
+    if horas > 0:
+        print("\nA Olist informou que esta renovacao vale %.0f horas sem uso." % horas)
+    else:
+        print("\nA Olist nao informou prazo de renovacao nesta conexao.")
+    print("Cada vez que ela e usada o prazo reinicia — por isso quem roda")
+    print("integracao o dia todo nunca ve vencer, e quem abre de vez em quando ve.")
+    print("Nada se perde: o custo importado fica na pasta e o painel segue")
+    print("funcionando depois que a conexao vence.")
     if r.get("protegido") is False:
         import pasta
         print("\n  ATENCAO: nao foi possivel confirmar a restricao de leitura do")

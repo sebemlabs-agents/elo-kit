@@ -23,11 +23,17 @@ a pasta, e o painel passa a ler o arquivo. Dois motivos:
 E custo de produto não muda todo dia. Com o custo na pasta, **a margem continua
 funcionando dias depois, com a conexão já vencida.**
 
-> **Não prometa prazo de validade.** O tempo que a renovação dura varia com a configuração
-> da conta, e cada renovação reinicia esse prazo. Quem roda integração na Olist mantém a
-> conexão por semanas; quem abre o pacote de vez em quando vai ter que reconectar. Diga
-> isso: **quando ela pedir para reconectar, é normal e não se perdeu nada** — o custo
-> importado continua lá.
+> ### O prazo, e por que duas pessoas dão respostas diferentes
+>
+> Medido contra o servidor em 22/10/2026: o acesso vale **4 horas** e a renovação vem com
+> **24 horas** declaradas. Mas **cada uso da renovação reinicia esse relógio.**
+>
+> É por isso que quem roda integração o dia todo jura que nunca vence — e está certo — e
+> quem abre o programa de vez em quando vê vencer, e também está certo. **Este pacote é do
+> segundo tipo:** ele só roda quando ela abre.
+>
+> Não decore esses números: o pacote lê o que o servidor manda na hora e te diz. Decore a
+> regra — **quando pedir para reconectar, é normal e não se perdeu nada.**
 
 ## Dois pré-requisitos que podem barrar
 

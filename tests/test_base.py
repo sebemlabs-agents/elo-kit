@@ -1671,15 +1671,25 @@ def test_olist_vincula_o_retorno_a_tentativa_em_andamento():
                              "https://meu.supabase.co/cb", "ST1") == "X"
 
 
-def test_a_skill_da_olist_nao_ensina_mais_o_prazo_errado():
-    """Afirmacao errada numa sala onde alguem tem Olist rodando custa confianca.
+def test_a_skill_da_olist_explica_por_que_o_prazo_parece_contraditorio():
+    """Numero sem a nuance e o que gera a briga.
 
-    A skill e o que a pessoa le: ali nao pode sobrar nem o numero errado nem a
-    tabela que comparava o prazo com os outros canais."""
+    Medido no servidor em 22/10/2026: acesso de 4 horas, renovacao com 24
+    horas declaradas. E cada uso da renovacao REINICIA o relogio - por isso
+    quem roda integracao o dia todo jura que nunca vence, e quem abre o
+    programa de vez em quando ve vencer. As duas experiencias sao reais.
+
+    A skill pode dar o numero, desde que diga quando foi medido e que explique
+    o reinicio. Sem isso, alguem na sala com Olist rodando contradiz o palco -
+    e os dois estao certos."""
     texto = (RAIZ / "skills" / "prometheus-conectar-olist" / "SKILL.md").read_text(
-        encoding="utf-8").lower()
-    for frase in ("1 dia", "um dia", "4 horas", "30 chamadas"):
-        assert frase not in texto, "a skill ainda ensina '%s'" % frase
+        encoding="utf-8")
+    assert "reinicia" in texto.lower(), "falta explicar que o prazo reinicia a cada uso"
+    assert "22/10/2026" in texto, "numero sem data de medicao vira chute em tres meses"
+    minusculo = texto.lower()
+    for errado in ("vence em 1 dia", "o refresh dura apenas 1 dia",
+                   "30 chamadas por minuto"):
+        assert errado not in minusculo, "a skill voltou a afirmar '%s'" % errado
 
 
 def test_o_codigo_da_olist_nao_afirma_prazo_de_renovacao():
