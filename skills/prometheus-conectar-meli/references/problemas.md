@@ -46,13 +46,13 @@ promoção. A skill pula, conta quantos pulou e segue.
 ## "Falha ao adicionar marketplace", ao colar o endereço do repositório
 
 A máquina já tem esse catálogo registrado por outro formato de endereço — normalmente a
-forma curta `sebemlabs-agents/elo-kit`, gravada numa instalação anterior pelo terminal. O
+forma curta `sebemlabs-agents/prometheus`, gravada numa instalação anterior pelo terminal. O
 Claude trata a URL inteira como fonte diferente e recusa, em vez de sobrescrever.
 
-**O que fazer:** cole a forma curta `sebemlabs-agents/elo-kit`. Se o catálogo já estiver
+**O que fazer:** cole a forma curta `sebemlabs-agents/prometheus`. Se o catálogo já estiver
 registrado, nem é preciso adicionar: o pacote aparece direto na aba **Descobrir**.
 
-Para começar do zero: `claude plugin marketplace remove elo-kit` desregistra o catálogo (e
+Para começar do zero: `claude plugin marketplace remove prometheus` desregistra o catálogo (e
 desinstala os plugins vindos dele).
 
 
@@ -68,7 +68,7 @@ to PATH"** na primeira tela.
 ## Windows: a pasta Documentos é recusada
 
 No Windows, `Documentos` normalmente está **dentro do OneDrive**, e o pacote recusa — como
-deve. Use uma pasta na raiz do perfil, por exemplo `C:\Users\<nome>\elo-meli`.
+deve. Use uma pasta na raiz do perfil, por exemplo `C:\Users\<nome>\prometheus`.
 
 Não contorne a verificação: o token da conta não pode ir para a nuvem sem o dono saber.
 
@@ -85,5 +85,5 @@ python3 atualizacao.py --ligar  # liga, depois de perguntar a ela
 
 **Rode você, não mande ela digitar.** Vale a partir da próxima vez que ela abrir o Claude.
 
-Para trazer a versão nova agora, sem esperar: `claude plugin marketplace update elo-kit` —
+Para trazer a versão nova agora, sem esperar: `claude plugin marketplace update prometheus` —
 este é o único caso em que vale pedir que ela rode algo, e só se ela estiver com pressa.

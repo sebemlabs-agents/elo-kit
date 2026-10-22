@@ -188,7 +188,7 @@ def _main():
     linhas = json.loads(entrada.read_text(encoding="utf-8"))
     itens, faltando, lacunas, avisos, resumo = calcular(linhas)
 
-    contrato.gravar("elo-margem", conta=None, periodo=None, resumo=resumo,
+    contrato.gravar("prometheus-margem", conta=None, periodo=None, resumo=resumo,
                     itens=itens, faltando=faltando, lacunas=lacunas, avisos=avisos,
                     fonte="export", capturado_em=capturado, pasta=BASE)
 

@@ -1,6 +1,6 @@
 ---
-name: elo-promocoes
-description: Monta a fila diária de decisão sobre promoções do Mercado Livre — o que termina nos próximos dias, quantos anúncios estão dentro, o desconto mínimo exigido e o que você já aderiu. Somente leitura. Use quando o usuário perguntar sobre promoções, campanhas, descontos, ofertas, "o que está acabando", "em que promoção eu entrei", "vale a pena aderir", ou quando pedir para atualizar o painel. Precisa da conta conectada pela skill elo-conectar-meli.
+name: prometheus-promocoes
+description: Monta a fila diária de decisão sobre promoções do Mercado Livre — o que termina nos próximos dias, quantos anúncios estão dentro, o desconto mínimo exigido e o que você já aderiu. Somente leitura. Use quando o usuário perguntar sobre promoções, campanhas, descontos, ofertas, "o que está acabando", "em que promoção eu entrei", "vale a pena aderir", ou quando pedir para atualizar o painel. Precisa da conta conectada pela skill prometheus-conectar-meli.
 ---
 
 # Promoções terminando — pacote Elo
@@ -95,4 +95,4 @@ esquecer de promoção.
 
 `references/problemas.md` da skill de conexão, que vale para todo o pacote. Os dois mais
 comuns aqui: **403** por falta da permissão de promoções no DevCenter, e **conta não
-conectada** — nesse caso, chame a `elo-conectar-meli` em vez de tentar contornar.
+conectada** — nesse caso, chame a `prometheus-conectar-meli` em vez de tentar contornar.

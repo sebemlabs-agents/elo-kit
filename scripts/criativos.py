@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Grava o pacote de conteudo de produto no formato do contrato.
 
-A skill elo-criativos produz o conteudo; este script so valida e grava, para o
+A skill prometheus-criativos produz o conteudo; este script so valida e grava, para o
 painel poder desenhar. Nao chama API nenhuma e nao precisa de conta conectada.
 
 Uso:
@@ -99,7 +99,7 @@ def _main():
         )
 
     dado = contrato.gravar(
-        "elo-criativos",
+        "prometheus-criativos",
         conta=None,
         periodo=None,
         resumo={
@@ -114,7 +114,7 @@ def _main():
         fonte="local",
         pasta=BASE,
     )
-    print("Gravado: elo-criativos.json (%d produto(s))" % len(itens))
+    print("Gravado: prometheus-criativos.json (%d produto(s))" % len(itens))
     if avisos:
         print("Avisos: %s" % "; ".join(avisos))
     print("Veja no painel:  python3 painel.py")

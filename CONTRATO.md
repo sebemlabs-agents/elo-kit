@@ -3,8 +3,8 @@
 - **Ticket:** LST-17589
 - **Versão do contrato:** `1`
 - **Data:** 2026-10-17
-- **Plano:** [Tarefa 0](../superpowers/plans/2026-10-16-pacote-elo-imersao-4.md)
-- **Destino:** vai para a raiz do repositório `elo-kit` como `CONTRATO.md` quando ele nascer.
+- **Plano:** [Tarefa 0](../superpowers/plans/2026-10-16-pacote-prometheus-imersao-4.md)
+- **Destino:** vai para a raiz do repositório `prometheus` como `CONTRATO.md` quando ele nascer.
 
 ---
 
@@ -26,14 +26,14 @@ Um arquivo por skill, na pasta do próprio vendedor:
 
 ```
 <pasta-do-vendedor>/
-├── elo-promocoes.json
-├── elo-caixa.json
-├── elo-criativos.json
-├── elo-devolucoes.json
+├── prometheus-promocoes.json
+├── prometheus-caixa.json
+├── prometheus-criativos.json
+├── prometheus-devolucoes.json
 └── painel.html            ← gerado a partir dos .json presentes
 ```
 
-O painel lê todos os `elo-*.json` da pasta. **Skill ausente não é erro**: o painel
+O painel lê todos os `prometheus-*.json` da pasta. **Skill ausente não é erro**: o painel
 simplesmente não desenha aquele bloco. Isso é o que permite entregar quatro skills no evento
 e mais quatro depois, sem mexer no painel.
 
@@ -47,7 +47,7 @@ mesmo vazios.
 ```json
 {
   "contrato": "1",
-  "skill": "elo-promocoes",
+  "skill": "prometheus-promocoes",
   "gerado_em": "2026-10-17T14:32:05-03:00",
   "fonte": "api",
   "conta": {
@@ -176,7 +176,7 @@ gravar(
     avisos: list[str] | None = None,
     fonte: str = "api",
     paginacao: dict | None = None,
-) -> dict          # grava elo-<skill>.json na pasta e devolve o que gravou
+) -> dict          # grava prometheus-<skill>.json na pasta e devolve o que gravou
 
 carregar(skill: str) -> dict | None    # None quando o arquivo não existe
 ```
@@ -202,14 +202,14 @@ Linhas de exemplo já previstas:
 
 | Skill | Um item é |
 |---|---|
-| `elo-promocoes` | uma promoção na janela: nome, término, dias restantes, anúncios dentro, percentual mínimo |
-| `elo-caixa` | uma data de liberação: valor líquido, origem, situação |
-| `elo-criativos` | um produto: título, descrição, benefícios, objeções |
-| `elo-devolucoes` | uma devolução: status, motivo, se retornou, valor, situação do repasse |
-| `elo-margem` | um anúncio: preço, taxa, custo, imposto, margem de contribuição |
-| `elo-concorrencia` | um produto analisado: concorrentes da primeira página, preço, reputação, Full, posição do meu |
-| `elo-estoque` | um SKU: cobertura em dias, curva, sugestão de compra, `fonte_de_estoque` |
-| `elo-conectar-meli` | não grava itens; grava o recibo de conexão em `resumo` |
+| `prometheus-promocoes` | uma promoção na janela: nome, término, dias restantes, anúncios dentro, percentual mínimo |
+| `prometheus-caixa` | uma data de liberação: valor líquido, origem, situação |
+| `prometheus-criativos` | um produto: título, descrição, benefícios, objeções |
+| `prometheus-devolucoes` | uma devolução: status, motivo, se retornou, valor, situação do repasse |
+| `prometheus-margem` | um anúncio: preço, taxa, custo, imposto, margem de contribuição |
+| `prometheus-concorrencia` | um produto analisado: concorrentes da primeira página, preço, reputação, Full, posição do meu |
+| `prometheus-estoque` | um SKU: cobertura em dias, curva, sugestão de compra, `fonte_de_estoque` |
+| `prometheus-conectar-meli` | não grava itens; grava o recibo de conexão em `resumo` |
 
 ---
 

@@ -1,5 +1,5 @@
 ---
-name: elo-criativos
+name: prometheus-criativos
 description: Transforma um produto cru em pacote de conteúdo pronto para anúncio — título, descrição, benefícios e objeções respondidas — a partir de um briefing que a skill ajuda a montar e recusa se estiver pobre. Não precisa de conexão com o Mercado Livre nem de chave de API. Use quando o usuário pedir ajuda com título, descrição, texto, conteúdo, copy ou anúncio de um produto, quiser melhorar um anúncio que já existe, ou quando ele travou na conexão e precisa de algo que funcione mesmo assim.
 ---
 
@@ -39,7 +39,7 @@ Melhora muito, e vale perguntar:
 
 ### Se o produto já existe no Mercado Livre
 
-Se o usuário estiver conectado (skill `elo-conectar-meli`), você pode puxar o anúncio atual e
+Se o usuário estiver conectado (skill `prometheus-conectar-meli`), você pode puxar o anúncio atual e
 usar como base do briefing, em vez de pedir tudo de novo:
 
 ```
@@ -106,7 +106,7 @@ Onde `pacote.json` é uma lista de produtos, cada um assim:
 ]
 ```
 
-O script valida contra o contrato e grava `elo-criativos.json` na pasta. Depois,
+O script valida contra o contrato e grava `prometheus-criativos.json` na pasta. Depois,
 `python3 painel.py` para ver no painel junto com o resto.
 
 Campo que você não tem: deixe de fora, e informe em `faltando` ao chamar o script com

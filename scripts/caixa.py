@@ -216,7 +216,7 @@ def _main():
 
     d = coletar(dias=opcao("--dias", DIAS_PADRAO, 180),
                 paginas=opcao("--paginas", MAX_PAGINAS, 60))
-    contrato.gravar("elo-caixa", conta=d["conta"], periodo=d["periodo"],
+    contrato.gravar("prometheus-caixa", conta=d["conta"], periodo=d["periodo"],
                     resumo=d["resumo"], itens=d["itens"], faltando=d["faltando"],
                     lacunas=d["lacunas"], avisos=d["avisos"])
 

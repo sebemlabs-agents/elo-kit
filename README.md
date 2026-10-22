@@ -1,4 +1,4 @@
-# elo-kit
+# prometheus
 
 Pacote de skills que conecta a sua conta do Mercado Livre **em somente leitura** e transforma
 os dados em decisão: promoções terminando, dinheiro a receber, conteúdo de produto e mais.
@@ -26,33 +26,33 @@ leitura **antes de ela sair do seu computador**.
 1. **Configurações → Plugins**
 2. Botão **+ Adicionar**, no canto superior direito → **Adicionar marketplace**
 3. Escolher **Adicionar de um repositório** e colar, nesta forma curta:
-   `sebemlabs-agents/elo-kit`
+   `sebemlabs-agents/prometheus`
 
    > Use a forma curta, não a URL inteira. Se a máquina já tiver esse catálogo
    > registrado pela forma curta, colar a URL completa é recusado como fonte
    > diferente, com a mensagem `Falha ao adicionar marketplace`.
-4. O `elo-kit` passa a aparecer na lista. Abrir e instalar, escolhendo o escopo
+4. O `prometheus` passa a aparecer na lista. Abrir e instalar, escolhendo o escopo
    (**para você** serve: vale em qualquer pasta desta máquina).
 
 **Pelo terminal**, se preferir — um comando registra o catálogo e instala:
 
 ```bash
-claude plugin install elo-kit --marketplace sebemlabs-agents/elo-kit
+claude plugin install prometheus --marketplace sebemlabs-agents/prometheus
 ```
 
 Precisa do Claude Code **2.1.292 ou mais novo** (`claude --version`). Em versão anterior, são
 dois comandos:
 
 ```bash
-claude plugin marketplace add sebemlabs-agents/elo-kit
-claude plugin install elo-kit@elo-kit
+claude plugin marketplace add sebemlabs-agents/prometheus
+claude plugin install prometheus@prometheus
 ```
 
 No **Codex**:
 
 ```bash
-codex plugin marketplace add sebemlabs-agents/elo-kit
-codex plugin add elo-kit@elo-kit
+codex plugin marketplace add sebemlabs-agents/prometheus
+codex plugin add prometheus@prometheus
 ```
 
 ### 1b. Deixar o pacote se atualizar sozinho
@@ -63,10 +63,10 @@ nosso. Sem ligar, você fica na versão do dia em que instalou.
 
 Não precisa procurar menu nem decorar comando. **Peça ao Claude:**
 
-> liga a atualização automática do elo-kit
+> liga a atualização automática do prometheus
 
 A skill de conexão cuida disso, pergunta antes de mexer e guarda cópia da sua configuração.
-Para saber como está a qualquer momento: *"o elo-kit está atualizando sozinho?"*
+Para saber como está a qualquer momento: *"o prometheus está atualizando sozinho?"*
 
 ### 2. Criar a pasta onde tudo vai morar
 
@@ -74,11 +74,11 @@ Uma pasta nova, só para isto, **fora** de Dropbox, iCloud, Google Drive e OneDr
 verifica isso e para se a pasta sincronizar, porque a sua credencial não pode ir para a nuvem
 sem você saber.
 
-Sugestão: uma pasta chamada `elo-meli`.
+Sugestão: uma pasta chamada `prometheus`.
 
 - **Mac:** em Documentos serve.
 - **Windows:** **não use Documentos** — ela quase sempre está dentro do OneDrive e o pacote
-  recusa. Use `C:\Users\<seu nome>\elo-meli`.
+  recusa. Use `C:\Users\<seu nome>\prometheus`.
 
 Conecte essa pasta ao Claude.
 
@@ -88,7 +88,7 @@ Peça ao assistente, nestas palavras ou parecidas:
 
 > **conecta minha conta do Mercado Livre**
 
-A skill `elo-conectar-meli` conduz o resto: cria o aplicativo no DevCenter do Mercado Livre,
+A skill `prometheus-conectar-meli` conduz o resto: cria o aplicativo no DevCenter do Mercado Livre,
 faz a autorização sem nenhum segredo passar pelo chat, confirma qual conta conectou e gera o
 primeiro painel. Leva cerca de **10 minutos**.
 
@@ -99,14 +99,14 @@ deve?"*, *"atualiza o painel"*.
 
 | Skill | O que entrega |
 |---|---|
-| `elo-conectar-meli` | acesso só-leitura à sua conta, na sua pasta |
-| `elo-painel` | o painel local com os blocos das skills que você rodou |
-| `elo-criativos` | produto cru vira título, descrição, benefícios e objeções — **não precisa de conexão nenhuma** |
-| `elo-promocoes` | a fila do que termina nos próximos dias, com anúncios dentro e desconto mínimo |
-| `elo-caixa` | quanto as suas vendas ainda vão liberar, e em que dia cada valor cai |
-| `elo-spec` | o plano para levar o painel para Supabase e Vercel, com a segurança ligada |
-| `elo-planilha` | lê qualquer CSV ou XLSX seu e cruza com o painel — sem formato obrigatório |
-| `elo-margem` | quanto sobra por anúncio depois de comissão, frete, custo e imposto |
+| `prometheus-conectar-meli` | acesso só-leitura à sua conta, na sua pasta |
+| `prometheus-painel` | o painel local com os blocos das skills que você rodou |
+| `prometheus-criativos` | produto cru vira título, descrição, benefícios e objeções — **não precisa de conexão nenhuma** |
+| `prometheus-promocoes` | a fila do que termina nos próximos dias, com anúncios dentro e desconto mínimo |
+| `prometheus-caixa` | quanto as suas vendas ainda vão liberar, e em que dia cada valor cai |
+| `prometheus-spec` | o plano para levar o painel para Supabase e Vercel, com a segurança ligada |
+| `prometheus-planilha` | lê qualquer CSV ou XLSX seu e cruza com o painel — sem formato obrigatório |
+| `prometheus-margem` | quanto sobra por anúncio depois de comissão, frete, custo e imposto |
 
 Mais skills entram pelo mesmo caminho: cada uma grava um arquivo no formato do
 [CONTRATO.md](./CONTRATO.md) e aparece como um bloco no painel.
@@ -136,7 +136,7 @@ Os dois geram PDF com `Google Chrome --headless --print-to-pdf`.
 ## Se algo der errado
 
 A skill traz a tabela de problemas com os erros reais e o que fazer em cada um —
-`skills/elo-conectar-meli/references/problemas.md`. Os três mais comuns:
+`skills/prometheus-conectar-meli/references/problemas.md`. Os três mais comuns:
 
 - **A URL de retorno precisa ser idêntica** à cadastrada no DevCenter, caractere por caractere.
 - **Conta de operador não autoriza.** Use a conta administradora da loja.
