@@ -1,15 +1,20 @@
 #!/usr/bin/env python3
 """Importa da Olist (Tiny) o que o marketplace nao tem: o CUSTO do produto.
 
-Por que isto e importacao e nao conexao viva: na Olist o access_token vale 4
-horas e o refresh_token vale UM DIA. Uma conexao viva estaria vencida em quase
-toda segunda visita — e custo de produto nao muda todo dia. Entao a gente puxa
-o custo uma vez, grava na pasta, e o painel usa o arquivo. A margem continua
-funcionando dias depois, com a conexao ja vencida.
+Por que isto e importacao e nao conexao viva — e o motivo mudou em 22/10/2026,
+quando as integracoes de producao do Marvin contradisseram a documentacao:
 
-O limite da conta e de 30 chamadas por minuto, compartilhado entre todos os
-aplicativos dela. Por isso o custo se puxa dos produtos que interessam, nao do
-catalogo inteiro.
+A renovacao da Olist NAO morre em um dia. Cada renovacao devolve um refresh
+novo e reinicia o prazo (rotacao), e nas integracoes que rodam de verdade a
+conexao se mantem por semanas. O que importa aqui e outra coisa: este pacote
+e um programa de mesa, nao um cron. Ele so roda quando a pessoa abre. Se ela
+passar um tempo sem abrir, a conexao vence — e custo de produto nao muda todo
+dia.
+
+Entao a gente puxa o custo, grava na pasta, e o painel usa o arquivo. A margem
+continua funcionando dias depois, com a conexao ja vencida. Isso tambem poupa
+o limite de chamadas, que e da CONTA e nao do aplicativo: varrer catalogo aqui
+atrapalharia as outras integracoes dela.
 
 SOMENTE LEITURA: api() levanta PermissionError para qualquer metodo que nao
 seja GET, antes de a chamada sair do computador.
@@ -24,6 +29,8 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
+import seguro
+
 BASE = Path(__file__).resolve().parent
 TOKENS_FILE = BASE / "tokens-olist.json"
 CUSTOS_FILE = BASE / "prometheus-custos.json"
@@ -33,6 +40,8 @@ AUTORIZAR = CONTAS + "/auth"
 TOKEN = CONTAS + "/token"
 API = "https://api.tiny.com.br/public-api/v3"
 
+# O access_token observado nas integracoes de producao vem com expires_in de
+# 21600 (6 horas). Renova 5 minutos antes.
 MARGEM_SEG = 300
 
 
@@ -41,26 +50,45 @@ class SemAutorizacao(RuntimeError):
 
 
 class PrecisaReconectar(RuntimeError):
-    """O refresh de 1 dia venceu. Nao e erro da pessoa, e o prazo da Olist."""
+    """A renovacao venceu. Quem decide isso e o servidor, nao um prazo nosso."""
 
 
 class ErroDaAPI(RuntimeError):
     """A Olist respondeu com erro."""
 
 
-def link_de_autorizacao(client_id, redirect_uri):
-    """OAuth2 padrao, no Keycloak da Tiny. Escopo minimo: openid."""
-    q = urllib.parse.urlencode({
+def link_de_autorizacao(client_id, redirect_uri, state=None):
+    """OAuth2 padrao, no Keycloak da Tiny. Escopo minimo: openid.
+
+    O `state` vincula o retorno a ESTA tentativa: sem ele, qualquer `?code=`
+    colado seria aceito como resposta ao nosso pedido."""
+    dados = {
         "client_id": client_id,
         "redirect_uri": redirect_uri,
         "scope": "openid",
         "response_type": "code",
-    })
-    return "%s?%s" % (AUTORIZAR, q)
+    }
+    if state:
+        dados["state"] = state
+    return "%s?%s" % (AUTORIZAR, urllib.parse.urlencode(dados))
 
 
-def ler_retorno(endereco):
+def ler_retorno(endereco, cadastrado=None, state_esperado=None):
+    """Tira o code do endereco colado, conferindo de onde ele veio.
+
+    Duas conferencias, e as duas tambem pegam o erro comum do dia a dia (colar
+    a URL da aba errada): o endereco tem de ser o cadastrado no aplicativo, e
+    o `state` tem de ser o da tentativa que esta em andamento."""
+    if cadastrado:
+        seguro.conferir_origem(endereco, cadastrado)
     q = urllib.parse.parse_qs(urllib.parse.urlparse(endereco).query)
+    if state_esperado:
+        veio = (q.get("state") or [""])[0]
+        if veio != state_esperado:
+            raise ValueError(
+                "Esse endereco e de outra tentativa de conexao, nao da que esta "
+                "em andamento. Refaca o passo 1:  python3 autorizar_olist.py"
+            )
     code = (q.get("code") or [""])[0]
     if not code:
         raise ValueError(
@@ -78,7 +106,7 @@ def _form(dados):
         method="POST",
     )
     try:
-        with urllib.request.urlopen(req, timeout=30) as r:
+        with seguro.abrir(req, timeout=30) as r:
             return json.loads(r.read().decode("utf-8"))
     except urllib.error.HTTPError as e:
         corpo = e.read().decode("utf-8", "replace")
@@ -89,38 +117,38 @@ def _form(dados):
 
 def _recado_de_reconexao():
     return (
-        "A conexao com a Olist venceu — e isso e esperado: la o refresh dura "
-        "apenas 1 dia, diferente do Mercado Livre, que dura meses. Nao se perdeu "
-        "nada: o custo que ja foi importado continua na pasta. Para trazer custo "
-        "novo, reconecte com:  python3 autorizar_olist.py"
+        "A conexao com a Olist venceu e precisa ser refeita. Nao se perdeu nada: "
+        "o custo que ja foi importado continua na pasta e o painel segue "
+        "funcionando. Para trazer custo novo, reconecte com:\n"
+        "  python3 autorizar_olist.py"
     )
 
 
-def salvar_tokens(dado):
-    import pasta
+def salvar_tokens(dado, refresh_anterior=None):
+    """Guarda o acesso ja com a permissao fechada, por substituicao atomica.
+
+    Dois cuidados que a Olist exige e os outros canais nao:
+
+    - ROTACAO: cada renovacao devolve um refresh novo e invalida o anterior.
+      Se a resposta vier sem refresh, guardar vazio apagaria a conexao de quem
+      estava funcionando — entao mantemos o anterior.
+    - PRAZO: a Olist nem sempre informa quanto tempo a renovacao ainda vale.
+      Quando ela nao informa, nao inventamos data: quem decide se a renovacao
+      morreu e o servidor, na hora de usar. Inventar um prazo curto faria o
+      pacote recusar renovar uma conexao que ainda estava boa.
+    """
     agora = int(time.time())
     conteudo = {
         "access_token": dado["access_token"],
-        "refresh_token": dado.get("refresh_token", ""),
-        "expires_at": agora + int(dado.get("expires_in", 14400)),
-        # A documentacao diz 1 dia; respeitamos o que o servidor mandar quando
-        # ele mandar, e caimos no 1 dia so na ausencia.
-        "refresh_expires_at": agora + int(dado.get("refresh_expires_in", 86400)),
+        "refresh_token": dado.get("refresh_token") or (refresh_anterior or ""),
+        "expires_at": agora + int(dado.get("expires_in", 21600)),
         "atualizado_em": time.strftime("%Y-%m-%d %H:%M:%S"),
     }
-    TOKENS_FILE.write_text(
-        json.dumps(conteudo, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    conteudo["protegido"] = True
-    conteudo["motivo"] = None
-    try:
-        os.chmod(TOKENS_FILE, 0o600)
-    except OSError:
-        conteudo["protegido"] = False
-        conteudo["motivo"] = "sem_permissao_para_mudar"
-    else:
-        if not pasta.fechado(TOKENS_FILE):
-            conteudo["protegido"] = False
-            conteudo["motivo"] = "nao_verificado_neste_sistema"
+    if dado.get("refresh_expires_in"):
+        conteudo["refresh_expires_at"] = agora + int(dado["refresh_expires_in"])
+    estado = seguro.gravar_protegido(
+        TOKENS_FILE, json.dumps(conteudo, indent=2, ensure_ascii=False) + "\n")
+    conteudo.update(estado)
     return conteudo
 
 
@@ -144,13 +172,18 @@ def _carregar():
 def token_valido(client_id, client_secret):
     """Devolve um access_token util, renovando se precisar.
 
-    Se o refresh de 1 dia tambem venceu, nao tenta nem chamar o servidor: diz
-    para reconectar, com o motivo. O erro cru do Keycloak nao ajuda ninguem."""
+    Só desiste sem tentar quando o proprio servidor informou um prazo de
+    renovacao e esse prazo passou. Na ausencia de prazo, tenta renovar: o
+    `invalid_grant` e a unica resposta autoritativa sobre a conexao ter
+    morrido, e e traduzido em recado de reconexao."""
     t = _carregar()
     agora = int(time.time())
     if t["expires_at"] - MARGEM_SEG > agora:
         return t["access_token"]
-    if t.get("refresh_expires_at", 0) <= agora:
+    prazo = t.get("refresh_expires_at")
+    if prazo and prazo <= agora:
+        raise PrecisaReconectar(_recado_de_reconexao())
+    if not t.get("refresh_token"):
         raise PrecisaReconectar(_recado_de_reconexao())
     novo = _form({
         "grant_type": "refresh_token",
@@ -158,7 +191,7 @@ def token_valido(client_id, client_secret):
         "client_secret": client_secret,
         "refresh_token": t["refresh_token"],
     })
-    return salvar_tokens(novo)["access_token"]
+    return salvar_tokens(novo, refresh_anterior=t["refresh_token"])["access_token"]
 
 
 def api(metodo, caminho, token=None, **parametros):
@@ -175,7 +208,8 @@ def api(metodo, caminho, token=None, **parametros):
     req = urllib.request.Request(
         url, headers={"Authorization": "Bearer %s" % token, "Accept": "application/json"})
     try:
-        with urllib.request.urlopen(req, timeout=30) as r:
+        # Sem seguir redirecionamento: um 302 reenviaria o Bearer para outro host.
+        with seguro.abrir(req, timeout=30) as r:
             return json.loads(r.read().decode("utf-8"))
     except urllib.error.HTTPError as e:
         if e.code == 401:
@@ -186,8 +220,8 @@ def api(metodo, caminho, token=None, **parametros):
         if e.code == 429:
             raise ErroDaAPI(
                 "Passou do limite de chamadas. O limite e por CONTA e nao por "
-                "aplicativo — 30 por minuto no plano Construa. Espere um pouco "
-                "e puxe menos produtos de uma vez.")
+                "aplicativo: todas as integracoes dela dividem a mesma cota. "
+                "Espere um pouco e puxe menos produtos de uma vez.")
         raise ErroDaAPI("A Olist respondeu HTTP %s." % e.code)
 
 

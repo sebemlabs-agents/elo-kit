@@ -5,28 +5,29 @@ description: Conecta o ERP Olist (Tiny) em somente leitura e importa o CUSTO dos
 
 # Conectar a Olist — o custo que falta na margem
 
-Esta skill existe por um motivo específico: **a API de marketplace nenhum entrega o custo
-do produto.** É por isso que o pacote pede uma planilha de custo. Quem tem o ERP não
+Esta skill existe por um motivo específico: **marketplace nenhum entrega o custo do
+produto.** É por isso que o pacote pede uma planilha de custo. Quem tem o ERP não
 precisa dela — o custo vem da fonte, com histórico.
 
 ## O desenho é diferente das outras duas conexões, e o motivo importa
 
-Na Olist o acesso vale **4 horas** e a renovação vale **1 DIA**.
+Aqui a gente **importa** o custo em vez de manter conexão viva: conecta, puxa o custo para
+a pasta, e o painel passa a ler o arquivo. Dois motivos:
 
-| | Renovação vence em |
-|---|---|
-| Mercado Livre | 6 meses |
-| Shopee | 30 dias |
-| **Olist** | **1 dia** |
+- **Este pacote é programa de mesa, não servidor.** Ele só roda quando ela abre. Uma
+  integração de verdade renova o acesso sozinha de hora em hora; o pacote não tem como —
+  e conexão que só renova quando alguém abre o computador vence sozinha.
+- **O limite de chamadas é da CONTA, não do aplicativo.** Todas as integrações dela
+  dividem a mesma cota. Varrer catálogo aqui atrapalha o ERP dela de verdade.
 
-Com um dia, uma conexão viva estaria vencida em quase toda segunda visita. E **custo de
-produto não muda todo dia.**
+E custo de produto não muda todo dia. Com o custo na pasta, **a margem continua
+funcionando dias depois, com a conexão já vencida.**
 
-Por isso aqui a gente **importa**: conecta, puxa o custo para a pasta, e o painel usa o
-arquivo. A margem continua funcionando dias depois, com a conexão já vencida.
-
-**Diga isso a ela antes de conectar.** Quando a Olist pedir para reconectar, ela precisa
-saber que é o prazo da Olist, não defeito do pacote nem erro dela.
+> **Não prometa prazo de validade.** O tempo que a renovação dura varia com a configuração
+> da conta, e cada renovação reinicia esse prazo. Quem roda integração na Olist mantém a
+> conexão por semanas; quem abre o pacote de vez em quando vai ter que reconectar. Diga
+> isso: **quando ela pedir para reconectar, é normal e não se perdeu nada** — o custo
+> importado continua lá.
 
 ## Dois pré-requisitos que podem barrar
 
@@ -79,8 +80,9 @@ python3 autorizar_olist.py --arquivo RETORNO_OLIST.txt
 
 ## 4. Puxar o custo — dos produtos que interessam, não de todos
 
-**O limite é de 30 chamadas por minuto, por CONTA e não por aplicativo.** Mil produtos
-levariam mais de meia hora e ainda atrapalhariam as outras integrações dela.
+**O limite de chamadas é por CONTA e não por aplicativo.** Quem já tem outras integrações
+divide a mesma cota com elas — varrer o catálogo daqui atrapalha o ERP dela de verdade, e
+demora.
 
 Então puxe o custo **dos produtos que estão sendo analisados** — os que apareceram na fila
 de promoções, os que ela perguntou. Não varra o catálogo.
@@ -95,9 +97,9 @@ de três semanas atrás apresentado como de hoje é decisão errada com cara de 
 
 | Sintoma | Causa | O que fazer |
 |---|---|---|
-| "Precisa reconectar" | o refresh de 1 dia venceu | **é o esperado.** O custo já importado continua na pasta; reconecte só para trazer custo novo |
+| "Precisa reconectar" | a renovação venceu | **não é defeito.** O custo já importado continua na pasta; reconecte só para trazer custo novo |
 | `401` | **não é chave errada** | é o usuário logado sem permissão no módulo. Confira o perfil do usuário, não a credencial |
-| `429` ou travou | passou de 30 chamadas por minuto | o limite é da conta inteira. Espere e puxe menos produtos |
+| `429` ou travou | passou do limite de chamadas | o limite é da conta inteira, dividido com as outras integrações dela. Espere e puxe menos produtos |
 | Não acha as chaves depois de salvar | elas não aparecem ao salvar | entre de novo no aplicativo e clique em editar |
 | Parou de funcionar depois de mexer nas permissões | a Olist invalida a chave | é documentado: ao mudar permissão, gere chave nova e atualize o `credenciais.txt` |
 

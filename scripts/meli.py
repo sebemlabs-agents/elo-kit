@@ -31,6 +31,7 @@ import urllib.request
 from pathlib import Path
 
 import pasta  # mesma pasta dos scripts; usa fechado()
+import seguro
 
 BASE = Path(__file__).resolve().parent
 # aceita credenciais.txt (visivel no Finder) ou .env
@@ -116,7 +117,9 @@ def post_form(url, dados):
         },
     )
     try:
-        with urllib.request.urlopen(req, timeout=30) as r:
+        # Sem seguir redirecionamento: o corpo leva Client Secret e um 302
+        # reenviaria o segredo para um host que nao escolhemos.
+        with seguro.abrir(req, timeout=30) as r:
             return json.load(r)
     except urllib.error.HTTPError as e:
         bruto = e.read().decode("utf-8", "replace")
@@ -158,23 +161,14 @@ def salvar_tokens(resp):
         "expires_at": int(time.time()) + int(resp.get("expires_in", 21600)),
         "atualizado_em": time.strftime("%Y-%m-%d %H:%M:%S"),
     }
-    TOKENS_FILE.write_text(
-        json.dumps(dados, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
-    )
-    # O tokens.json nasce DEPOIS que o pasta.py rodou, entao a verificacao dele
-    # tem de acontecer aqui — e este e o arquivo mais sensivel da pasta. Mesma
-    # regra: medir o resultado, nunca confiar na chamada.
-    dados["protegido"] = True
-    dados["motivo"] = None
-    try:
-        os.chmod(TOKENS_FILE, 0o600)
-    except OSError:
-        dados["protegido"] = False
-        dados["motivo"] = "sem_permissao_para_mudar"
-    else:
-        if not pasta.fechado(TOKENS_FILE):
-            dados["protegido"] = False
-            dados["motivo"] = "nao_verificado_neste_sistema"
+    # Este e o arquivo mais sensivel da pasta, e ele nasce DEPOIS que o
+    # pasta.py rodou — a verificacao tem de acontecer aqui. Gravacao atomica
+    # com a permissao fechada desde a abertura: gravar primeiro e fechar
+    # depois deixava o token legivel por outros usuarios da maquina nesse
+    # intervalo. Mesma regra de sempre: medir o resultado, nunca confiar na
+    # chamada.
+    dados.update(seguro.gravar_protegido(
+        TOKENS_FILE, json.dumps(dados, indent=2, ensure_ascii=False) + "\n"))
     return dados
 
 
@@ -239,7 +233,7 @@ def request(metodo, path, params=None):
     }
     req = urllib.request.Request(url, method="GET", headers=headers)
     try:
-        with urllib.request.urlopen(req, timeout=60) as r:
+        with seguro.abrir(req, timeout=60) as r:
             bruto = r.read().decode("utf-8", "replace")
             return json.loads(bruto) if bruto.strip() else {}
     except urllib.error.HTTPError as e:

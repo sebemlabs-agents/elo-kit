@@ -52,12 +52,15 @@ def passo1():
 
 
 def passo2(caminho):
-    pid, chave, _ = _credenciais()
+    pid, chave, redirect = _credenciais()
     endereco = Path(caminho).read_text(encoding="utf-8").strip()
     if not endereco:
         raise SystemExit("PARADO: %s esta vazio. Cole a barra do navegador e salve."
                          % caminho)
-    code, loja = shopee.ler_retorno(endereco)
+    try:
+        code, loja = shopee.ler_retorno(endereco, redirect)
+    except ValueError as e:
+        raise SystemExit("PARADO: %s" % e)
     r = shopee.trocar_code_por_token(code, loja, pid, chave)
     Path(caminho).write_text("", encoding="utf-8")
     print("\nConectado. Acesso salvo em tokens-shopee.json (conteudo nao mostrado).")

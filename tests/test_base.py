@@ -19,6 +19,7 @@ import meli  # noqa: E402
 import criativos  # noqa: E402
 import painel  # noqa: E402
 import pasta as pasta_mod  # noqa: E402
+import seguro  # noqa: E402
 import atualizacao  # noqa: E402
 import promocoes  # noqa: E402
 import caixa  # noqa: E402
@@ -135,9 +136,22 @@ def test_preparar_cria_apoio_e_nunca_perde_credenciais(tmp_path):
 # ignora o resto em silencio, sem levantar erro. O pacote imprimia "Permissao
 # fechada em: ..." numa maquina onde nada tinha sido fechado. Estes testes
 # existem para que o relato seja medido, nunca presumido.
+#
+# Em 22/10/2026 o arquivo de segredo passou a nascer ja restrito (mkstemp +
+# substituicao atomica), para fechar a janela entre gravar e proteger. Com
+# isso, neutralizar o chmod deixou de simular o Windows: o que caracteriza o
+# Windows e a RESTRICAO NAO SER CONFIRMAVEL. E isso que _simula_windows faz.
+# As afirmacoes dos testes continuam as mesmas: so prometer o verificado.
 
 def _lista(r, chave):
     return [i["arquivo"] if isinstance(i, dict) else i for i in r.get(chave, [])]
+
+
+def _simula_windows(monkeypatch):
+    """chmod nao levanta erro, e a restricao nao pode ser confirmada."""
+    monkeypatch.setattr(pasta_mod.os, "chmod", lambda *a, **k: None)
+    monkeypatch.setattr(pasta_mod, "fechado", lambda *a, **k: False)
+    monkeypatch.setattr(seguro, "fechado", lambda *a, **k: False)
 
 
 def test_so_lista_como_protegido_o_que_de_fato_esta_fechado(tmp_path):
@@ -150,9 +164,9 @@ def test_so_lista_como_protegido_o_que_de_fato_esta_fechado(tmp_path):
 
 
 def test_arquivo_que_nao_pudo_ser_fechado_entra_em_nao_protegidos(tmp_path, monkeypatch):
-    """Simula o Windows: o chmod nao levanta erro e tambem nao restringe nada."""
+    """Simula o Windows: a restricao nao pode ser confirmada."""
     (tmp_path / "credenciais.txt").write_text("MELI_APP_ID=\n", encoding="utf-8")
-    monkeypatch.setattr(pasta_mod.os, "chmod", lambda *a, **k: None)
+    _simula_windows(monkeypatch)
     r = pasta_mod.preparar(tmp_path)
     assert "credenciais.txt" not in _lista(r, "protegidos")
     assert "credenciais.txt" in _lista(r, "nao_protegidos")
@@ -160,7 +174,7 @@ def test_arquivo_que_nao_pudo_ser_fechado_entra_em_nao_protegidos(tmp_path, monk
 
 def test_nao_protegido_vem_com_motivo_de_um_conjunto_fechado(tmp_path, monkeypatch):
     (tmp_path / "tokens.json").write_text("{}", encoding="utf-8")
-    monkeypatch.setattr(pasta_mod.os, "chmod", lambda *a, **k: None)
+    _simula_windows(monkeypatch)
     r = pasta_mod.preparar(tmp_path)
     assert r["nao_protegidos"], "esperava relato de arquivo nao protegido"
     for item in r["nao_protegidos"]:
@@ -169,7 +183,7 @@ def test_nao_protegido_vem_com_motivo_de_um_conjunto_fechado(tmp_path, monkeypat
 
 def test_cli_nao_afirma_que_fechou_quando_nao_fechou(tmp_path, monkeypatch, capsys):
     (tmp_path / "credenciais.txt").write_text("MELI_APP_ID=\n", encoding="utf-8")
-    monkeypatch.setattr(pasta_mod.os, "chmod", lambda *a, **k: None)
+    _simula_windows(monkeypatch)
     monkeypatch.setattr(pasta_mod, "BASE", tmp_path)
     monkeypatch.setattr(pasta_mod.sys, "argv", ["pasta.py"])
     pasta_mod._main()
@@ -206,7 +220,7 @@ def test_relato_cobre_a_pasta_e_nao_so_os_arquivos(tmp_path):
 def test_salvar_tokens_relata_quando_nao_pudo_proteger(tmp_path, monkeypatch):
     """tokens.json e gravado depois do pasta.py — a verificacao tem de ir junto."""
     monkeypatch.setattr(meli, "TOKENS_FILE", tmp_path / "tokens.json")
-    monkeypatch.setattr(meli.os, "chmod", lambda *a, **k: None)
+    _simula_windows(monkeypatch)
     r = meli.salvar_tokens({"access_token": "x", "refresh_token": "y",
                             "expires_in": 21600, "user_id": 123})
     assert r is not None, "salvar_tokens tem de relatar o resultado da protecao"
@@ -1488,3 +1502,209 @@ def test_arquivos_do_olist_sao_tratados_como_sensiveis(tmp_path):
     gi = (tmp_path / ".gitignore").read_text(encoding="utf-8")
     for nome in ("tokens-olist.json", "ABRIR_OLIST.txt", "RETORNO_OLIST.txt"):
         assert nome in gi
+
+
+# =============================================================================
+# Revisao cross-vendor de 22/10/2026 (lente Cypher). Cada teste abaixo trava um
+# apontamento que BLOQUEOU o merge das conexoes Shopee e Olist. O que eles
+# protegem nao e um detalhe de implementacao: e a promessa de que o segredo do
+# vendedor nao escapa e de que o pacote nao escreve na conta dele.
+# =============================================================================
+
+def test_segredo_nasce_fechado_sem_janela_de_exposicao(tmp_path):
+    """Gravar e depois fechar deixava o token legivel por um instante.
+
+    Em maquina compartilhada esse instante basta. Aqui o arquivo tem de chegar
+    ao destino JA restrito."""
+    if os.name != "posix":
+        pytest.skip("o modo POSIX so e aplicado onde existe")
+    destino = tmp_path / "tokens.json"
+    r = seguro.gravar_protegido(destino, '{"access_token":"x"}')
+    assert r["protegido"] is True
+    assert destino.stat().st_mode & 0o077 == 0
+
+
+def test_gravacao_interrompida_nao_destroi_o_arquivo_anterior(tmp_path, monkeypatch):
+    """Truncar e reescrever perdia tudo se a maquina caisse no meio."""
+    destino = tmp_path / "credenciais.txt"
+    destino.write_bytes(b"MELI_APP_ID=123456\n")
+    monkeypatch.setattr(seguro.os, "replace",
+                        lambda *a, **k: (_ for _ in ()).throw(OSError("caiu")))
+    with pytest.raises(OSError):
+        seguro.gravar_protegido(destino, "conteudo novo")
+    assert destino.read_bytes() == b"MELI_APP_ID=123456\n"
+    assert not list(tmp_path.glob(".tmp-*")), "sobrou temporario com segredo na pasta"
+
+
+def test_nenhuma_chamada_com_credencial_segue_redirecionamento():
+    """urllib reenvia o Authorization no 302 — para um host que nao escolhemos.
+
+    Teste de varredura: qualquer urlopen cru que volte ao pacote reabre o furo,
+    inclusive num script novo que ninguem lembrou de revisar."""
+    cruas = []
+    for arq in sorted((RAIZ / "scripts").glob("*.py")):
+        if arq.name == "seguro.py":
+            continue
+        for n, linha in enumerate(arq.read_text(encoding="utf-8").splitlines(), 1):
+            if "urlopen(" in linha and not linha.strip().startswith("#"):
+                cruas.append("%s:%s" % (arq.name, n))
+    assert not cruas, "urlopen cru (segue redirecionamento) em: %s" % ", ".join(cruas)
+
+
+def test_redirecionamento_e_recusado_com_recado_de_gente():
+    h = seguro._SemRedirecionamento()
+    with pytest.raises(seguro.RedirecionamentoRecusado) as e:
+        h.redirect_request(None, None, 302, "Found", {}, "https://outro-host.com/")
+    assert "nao e erro seu" in str(e.value)
+
+
+def test_retorno_de_outro_endereco_e_recusado_sem_ecoar_o_code():
+    """O `?code=` nao pode aparecer na mensagem: ela vai para a tela e o log."""
+    with pytest.raises(seguro.RetornoDeOutroEndereco) as e:
+        seguro.conferir_origem("https://site-errado.com/cb?code=CODIGO_SECRETO",
+                               "https://meu.supabase.co/cb")
+    assert "CODIGO_SECRETO" not in str(e.value)
+    assert "site-errado.com" in str(e.value)
+
+
+def test_barra_final_e_porta_padrao_nao_quebram_o_retorno():
+    """Rigor que recusa retorno valido viraria conexao travada na sala."""
+    assert seguro.conferir_origem("https://meu.supabase.co/cb?code=1",
+                                  "https://meu.supabase.co/cb/")
+    assert seguro.conferir_origem("https://meu.supabase.co:443/cb?code=1",
+                                  "https://meu.supabase.co/cb")
+
+
+def test_shopee_so_faz_post_nos_dois_caminhos_da_conexao():
+    """A promessa de somente leitura vale pouco se existir um POST generico."""
+    with pytest.raises(PermissionError) as e:
+        shopee._post("/api/v2/product/update_price", {"price": 1}, 1, "chave")
+    assert "somente leitura" in str(e.value)
+    assert set(shopee.CAMINHOS_DE_POST) == {shopee.CAMINHO_TOKEN, shopee.CAMINHO_REFRESH}
+
+
+def test_shopee_nao_repete_a_resposta_dela_na_mensagem_de_erro():
+    """Se a Shopee devolver pedaco da chamada no texto, repetir e vazar."""
+    msg = shopee._explicar({"error": "unknown_x",
+                            "message": "access_token=SEGREDO sign=ABCDEF"})
+    assert "SEGREDO" not in msg and "ABCDEF" not in msg
+    assert "unknown_x" in msg
+
+
+def test_shopee_recusa_retorno_com_usuario_e_senha_embutidos():
+    """netloc carrega usuario:senha; a conferencia tem de ler o hostname."""
+    with pytest.raises(ValueError) as e:
+        shopee.conferir_retorno("https://usuario:SENHA123@loja.com/cb")
+    assert "SENHA123" not in str(e.value)
+
+
+def test_shopee_nao_se_engana_com_dominio_reservado_disfarcado():
+    """https://ok.com@x.invalid/ tem netloc 'ok.com@x.invalid' e hostname x.invalid."""
+    with pytest.raises(ValueError):
+        shopee.conferir_retorno("https://ok.com@radar.invalid/cb")
+
+
+def test_shopee_confere_que_o_retorno_veio_do_endereco_cadastrado():
+    with pytest.raises(seguro.RetornoDeOutroEndereco):
+        shopee.ler_retorno("https://outro.com/cb?code=X&shop_id=9",
+                           "https://meu.supabase.co/cb")
+    code, loja = shopee.ler_retorno("https://meu.supabase.co/cb?code=X&shop_id=9",
+                                    "https://meu.supabase.co/cb")
+    assert (code, loja) == ("X", 9)
+
+
+# ------------------------------------------------- Olist: o prazo que nao era
+
+def test_olist_nao_inventa_prazo_de_renovacao(tmp_path, monkeypatch):
+    """A doc dizia 1 dia; as integracoes de producao do Marvin contradizem.
+
+    Inventar prazo curto fazia o pacote RECUSAR renovar uma conexao que ainda
+    estava boa. Sem informacao do servidor, nao se grava data."""
+    monkeypatch.setattr(olist, "TOKENS_FILE", tmp_path / "tokens-olist.json")
+    r = olist.salvar_tokens({"access_token": "A", "refresh_token": "R",
+                             "expires_in": 21600})
+    assert "refresh_expires_at" not in r
+
+
+def test_olist_tenta_renovar_quando_o_servidor_nao_deu_prazo(tmp_path, monkeypatch):
+    monkeypatch.setattr(olist, "TOKENS_FILE", tmp_path / "tokens-olist.json")
+    olist.salvar_tokens({"access_token": "VELHO", "refresh_token": "R",
+                         "expires_in": 0})
+    chamou = {}
+
+    def _falso(dados):
+        chamou["grant"] = dados["grant_type"]
+        return {"access_token": "NOVO", "refresh_token": "R2", "expires_in": 21600}
+
+    monkeypatch.setattr(olist, "_form", _falso)
+    assert olist.token_valido("cid", "sec") == "NOVO"
+    assert chamou["grant"] == "refresh_token"
+
+
+def test_olist_respeita_o_prazo_quando_o_servidor_informa(tmp_path, monkeypatch):
+    """Quando a Olist diz o prazo, a gente obedece — sem chamar o servidor em vao."""
+    monkeypatch.setattr(olist, "TOKENS_FILE", tmp_path / "tokens-olist.json")
+    olist.salvar_tokens({"access_token": "A", "refresh_token": "R",
+                         "expires_in": 0, "refresh_expires_in": 1})
+    time.sleep(1.1)
+    monkeypatch.setattr(olist, "_form",
+                        lambda d: pytest.fail("nao devia chamar o servidor"))
+    with pytest.raises(olist.PrecisaReconectar):
+        olist.token_valido("cid", "sec")
+
+
+def test_olist_rotacao_nao_apaga_o_refresh_de_quem_funcionava(tmp_path, monkeypatch):
+    """Cada renovacao devolve refresh novo. Resposta sem refresh nao pode zerar."""
+    monkeypatch.setattr(olist, "TOKENS_FILE", tmp_path / "tokens-olist.json")
+    r = olist.salvar_tokens({"access_token": "B", "expires_in": 21600},
+                            refresh_anterior="R_BOM")
+    assert r["refresh_token"] == "R_BOM"
+
+
+def test_olist_vincula_o_retorno_a_tentativa_em_andamento():
+    link = olist.link_de_autorizacao("cid", "https://meu.supabase.co/cb", "ST1")
+    assert "state=ST1" in link
+    with pytest.raises(ValueError):
+        olist.ler_retorno("https://meu.supabase.co/cb?code=X&state=OUTRO",
+                          "https://meu.supabase.co/cb", "ST1")
+    assert olist.ler_retorno("https://meu.supabase.co/cb?code=X&state=ST1",
+                             "https://meu.supabase.co/cb", "ST1") == "X"
+
+
+def test_a_skill_da_olist_nao_ensina_mais_o_prazo_errado():
+    """Afirmacao errada numa sala onde alguem tem Olist rodando custa confianca.
+
+    A skill e o que a pessoa le: ali nao pode sobrar nem o numero errado nem a
+    tabela que comparava o prazo com os outros canais."""
+    texto = (RAIZ / "skills" / "prometheus-conectar-olist" / "SKILL.md").read_text(
+        encoding="utf-8").lower()
+    for frase in ("1 dia", "um dia", "4 horas", "30 chamadas"):
+        assert frase not in texto, "a skill ainda ensina '%s'" % frase
+
+
+def test_o_codigo_da_olist_nao_afirma_prazo_de_renovacao():
+    """No codigo o prazo so pode vir do servidor, nunca de constante nossa."""
+    texto = (RAIZ / "scripts" / "olist.py").read_text(encoding="utf-8")
+    assert "86400" not in texto
+    for frase in ("refresh de 1 dia", "vale 1 DIA", "vale um dia"):
+        assert frase not in texto
+
+
+# ------------------------------------------- migracao: bytes do usuario intactos
+
+def test_migracao_preserva_fim_de_linha_do_windows(tmp_path):
+    """Ler como texto e regravar convertia CRLF, mudando bytes que ela digitou."""
+    cred = tmp_path / "credenciais.txt"
+    cred.write_bytes(b"MELI_APP_ID=123\r\nMELI_CLIENT_SECRET=abc\r\n")
+    pasta_mod.completar_credenciais(cred)
+    bruto = cred.read_bytes()
+    assert bruto.startswith(b"MELI_APP_ID=123\r\nMELI_CLIENT_SECRET=abc\r\n")
+    assert b"SHOPEE_PARTNER_ID" in bruto and b"OLIST_CLIENT_ID" in bruto
+
+
+def test_migracao_nao_mexe_em_arquivo_que_ja_tem_tudo(tmp_path):
+    cred = tmp_path / "credenciais.txt"
+    pasta_mod.preparar(tmp_path)
+    antes = cred.read_bytes()
+    assert pasta_mod.completar_credenciais(cred) == []
+    assert cred.read_bytes() == antes

@@ -13,6 +13,7 @@ import urllib.error
 import urllib.request
 
 import meli
+import seguro
 
 API = "https://api.mercadolibre.com"
 _tok = {"v": None, "t": 0}
@@ -34,7 +35,7 @@ def pedir(path, headers=None, tentativas=4):
             h.update(headers)
         req = urllib.request.Request(url, method="GET", headers=h)
         try:
-            with urllib.request.urlopen(req, timeout=60) as r:
+            with seguro.abrir(req, timeout=60) as r:
                 bruto = r.read().decode("utf-8", "replace")
                 return r.status, (json.loads(bruto) if bruto.strip() else {})
         except urllib.error.HTTPError as e:

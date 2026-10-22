@@ -12,17 +12,25 @@ Na Olist o acesso vale 4 horas e a renovacao vale 1 DIA. Por isso o custo e
 importado para a pasta: o painel usa o arquivo e continua funcionando depois
 que a conexao vence.
 """
+import json
+import secrets
 import sys
+import time
 from pathlib import Path
 
 BASE = Path(__file__).resolve().parent
 sys.path.insert(0, str(BASE))
 
 import meli  # noqa: E402
+import seguro  # noqa: E402
 import olist  # noqa: E402
 
 ABRIR = BASE / "ABRIR_OLIST.txt"
 RETORNO = BASE / "RETORNO_OLIST.txt"
+# Vincula o retorno a esta tentativa. Vale 1 hora: o code da Olist expira em
+# muito menos que isso, entao o prazo daqui nunca e o que trava a pessoa.
+ESTADO = BASE / ".oauth_state_olist"
+VALIDADE_ESTADO = 3600
 CHAVES = ("OLIST_CLIENT_ID", "OLIST_CLIENT_SECRET", "OLIST_REDIRECT_URI")
 
 
@@ -40,7 +48,11 @@ def _credenciais():
 
 def passo1():
     cid, _, redirect = _credenciais()
-    ABRIR.write_text(olist.link_de_autorizacao(cid, redirect) + "\n", encoding="utf-8")
+    state = secrets.token_urlsafe(16)
+    seguro.gravar_protegido(
+        ESTADO, json.dumps({"state": state, "em": int(time.time())}))
+    ABRIR.write_text(olist.link_de_autorizacao(cid, redirect, state) + "\n",
+                     encoding="utf-8")
     RETORNO.write_text("", encoding="utf-8")
     print("Pronto. Agora:")
     print("  1. Abra ABRIR_OLIST.txt e copie o endereco")
@@ -50,14 +62,39 @@ def passo1():
     return 0
 
 
+def _estado_pendente():
+    """Devolve o state da tentativa em andamento, ou None se nao houver."""
+    try:
+        d = json.loads(ESTADO.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    if int(time.time()) - int(d.get("em", 0)) > VALIDADE_ESTADO:
+        return None
+    return d.get("state")
+
+
 def passo2(caminho):
     cid, segredo, redirect = _credenciais()
     endereco = Path(caminho).read_text(encoding="utf-8").strip()
     if not endereco:
         raise SystemExit("PARADO: %s esta vazio. Cole a barra do navegador e salve."
                          % caminho)
-    r = olist.trocar_code_por_token(olist.ler_retorno(endereco), cid, segredo, redirect)
+    esperado = _estado_pendente()
+    if not esperado:
+        raise SystemExit(
+            "PARADO: nao ha conexao em andamento (ou ela ficou velha demais).\n"
+            "Comece pelo passo 1:  python3 autorizar_olist.py")
+    try:
+        code = olist.ler_retorno(endereco, redirect, esperado)
+    except (ValueError, seguro.RetornoDeOutroEndereco) as e:
+        raise SystemExit("PARADO: %s" % e)
+    r = olist.trocar_code_por_token(code, cid, segredo, redirect)
     Path(caminho).write_text("", encoding="utf-8")
+    # Uso unico: gasto o state para a mesma URL nao servir duas vezes.
+    try:
+        ESTADO.unlink()
+    except OSError:
+        pass
     print("\nConectado. Acesso salvo em tokens-olist.json (conteudo nao mostrado).")
     print("  retorno: esvaziado")
     print("\nA renovacao da Olist vence em 1 DIA — e normal, e nao e erro seu.")

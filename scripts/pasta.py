@@ -16,6 +16,8 @@ import os
 import sys
 from pathlib import Path
 
+from seguro import fechado, gravar_protegido  # noqa: F401 (reexporta)
+
 BASE = Path(__file__).resolve().parent
 
 # Nomes de pasta que denunciam sincronizacao. Comparados em minusculas contra
@@ -41,6 +43,7 @@ ARQUIVOS_SENSIVEIS = (
     ".env",
     "tokens.json",
     ".oauth_state",
+    ".oauth_state_olist",
     "ABRIR_NO_NAVEGADOR.txt",
     "RETORNO.txt",
     "tokens-shopee.json",
@@ -192,36 +195,32 @@ def conferir(caminho=None):
     return True
 
 
-def fechado(arquivo):
-    """Diz se o arquivo esta de fato fora do alcance de grupo e de outros.
-
-    Mede o resultado em vez de confiar no chmod: e a unica forma de o relato
-    ser verdadeiro nos dois sistemas."""
-    try:
-        return os.stat(arquivo).st_mode & 0o077 == 0
-    except OSError:
-        return False
 
 
 def completar_credenciais(arquivo):
     """Acrescenta ao credenciais.txt os blocos que ainda nao estao nele.
 
-    Nunca reescreve, nunca reordena, nunca toca no que a pessoa preencheu: so
-    anexa no fim o que falta. Devolve os nomes dos blocos acrescentados."""
+    Trabalha em BYTES, de proposito: ler como texto e gravar de volta
+    converteria o fim de linha de um arquivo salvo no Windows, mudando bytes
+    que a pessoa digitou. Aqui o que ela preencheu sai igual ao que entrou —
+    so o que falta e anexado no fim. A gravacao e atomica: se a maquina cair
+    no meio, o arquivo continua inteiro, nunca truncado.
+
+    Devolve os nomes dos blocos acrescentados."""
     try:
-        texto = arquivo.read_text(encoding="utf-8")
+        bruto = arquivo.read_bytes()
     except OSError:
         return []
-    novos = []
+    texto = bruto.decode("utf-8", "replace")
+    novos, extra = [], b""
     for sentinela, bloco in BLOCOS_OPCIONAIS:
         if sentinela in texto:
             continue
-        if not texto.endswith("\n"):
-            texto += "\n"
-        texto += bloco
+        extra += bloco.encode("utf-8")
         novos.append(sentinela)
     if novos:
-        arquivo.write_text(texto, encoding="utf-8")
+        quebra = b"" if (not bruto or bruto.endswith((b"\n", b"\r"))) else b"\n"
+        gravar_protegido(arquivo, bruto + quebra + extra)
     return novos
 
 
