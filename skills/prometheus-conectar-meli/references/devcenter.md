@@ -70,30 +70,42 @@ página dando erro é o comportamento correto.
    **Sugira, não imponha.** Se ela quiser outro nome, tudo bem; o que não pode variar é a URL
    de retorno, que tem de ser idêntica ao arquivo.
 
-3. **URL de redirecionamento:** cole a que está no `credenciais.txt`. Nada de digitar.
+3. **URIs de redirect** (a tela usa o plural, e tem um botão *Adicionar URI de redirect*):
+   cole a que está no `credenciais.txt`. **Nada de digitar.**
 
 4. **Ligue, uma por uma** — e confira cada uma antes de salvar, porque faltar qualquer delas
    só aparece como erro lá na frente, sem dizer o que faltou:
 
-   **Conferido na tela em 22/10/2026** (as versões anteriores deste guia erravam aqui):
+   **Conferido na tela em 22/10/2026**, com os nomes exatos das seções. As versões
+   anteriores deste guia erravam aqui.
 
-   - [ ] **Refresh token** — **marcar.** Sem isto a conexão cai em poucas horas e pede login
+   Em **Fluxos OAuth** — três caixas lado a lado:
+
+   - [ ] **Authorization Code** — **marcar.** É o fluxo que o pacote usa; costuma já vir
+         marcado
+   - [ ] **Refresh Token** — **marcar.** Sem ele a conexão cai em poucas horas e pede login
          de novo
-   - [ ] **PKCE** — **marcar.** Os scripts usam S256
-   - [ ] **Client credentials** — **DESMARCAR.** Este guia já mandou marcar, e estava errado:
-         é outro fluxo de autenticação, que o pacote não usa. O App ID e a chave secreta
-         existem de qualquer jeito
-   - [ ] **Mercado Livre** — **marcar.** É o produto; não Mercado Pago, não Mercado Envios
-   - [ ] **Visa** — **não marcar.** Fica ao lado do Mercado Livre e serve a quem vende carro
-         e imóvel. Ninguém precisa dele aqui
+   - [ ] **Client Credentials** — **NÃO marcar.** Este guia já mandou marcar, e estava
+         errado: é outro fluxo, que o pacote não usa. O App ID e a chave secreta aparecem
+         de qualquer jeito
+
+   Em **PKCE necessário** — seção própria, logo abaixo:
+
+   - [ ] **pkce** — **marcar.** É esse o nome na caixa
+
+   Em **Negócios** — "escolha as unidades de negócio que você quer integrar":
+
+   - [ ] **Mercado Livre** — **marcar**
+   - [ ] **VIS** — **NÃO marcar.** É `VIS`, não "Visa", e fica colado no de cima
 
    > Os rótulos mudam de tempos em tempos. Se o que estiver na frente dela não bater com esta
    > lista, vá pelo sentido — e **não siga com alguma delas em dúvida**: é mais barato
    > conferir agora que depurar `403` depois.
 
-5. **Acessos** — é assim que a tela chama; este guia dizia "permissões funcionais". São
-   permissões por recurso, com leitura e escrita separadas. **Marque leitura nas quatro** (o
-   pacote nunca escreve):
+5. **Permissões** — é assim que a tela chama; este guia dizia "permissões funcionais".
+   **Não são caixas: é uma lista de recursos com um menu em cada um**, que abre em *Sem
+   acesso*, *Leitura* e *Leitura e escrita*. **Escolha Leitura** nos que interessam — o pacote
+   nunca escreve. Os que importam:
    - Usuários (normalmente já vem ligada)
    - Publicação e sincronização — a lista de anúncios
    - Vendas e envios — os pedidos
