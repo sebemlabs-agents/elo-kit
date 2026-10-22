@@ -91,7 +91,13 @@ MELI_CLIENT_SECRET=
 # Precisa ser IDENTICO ao "URL de redirecionamento" cadastrado na aplicacao.
 # .invalid e um dominio reservado que nunca abre: o code nao sai do seu navegador.
 MELI_REDIRECT_URI=%(uri)s
-#
+%(shopee)s"""
+
+# Blocos que podem ser acrescentados a um credenciais.txt que ja existe. Quem
+# conectou o Mercado Livre antes de a Shopee entrar no pacote precisa receber as
+# linhas novas na atualizacao — senao a skill manda preencher o que nao esta la.
+# A chave sentinela diz se o bloco ja esta no arquivo.
+BLOCO_SHOPEE = """#
 # ---------------------------------------------------------------------------
 # Shopee — so preencha se voce for conectar a Shopee tambem.
 # (open.shopee.com -> Open Platform Console -> App List)
@@ -102,6 +108,8 @@ SHOPEE_PARTNER_ID=
 SHOPEE_PARTNER_KEY=
 SHOPEE_REDIRECT_URI=
 """
+
+BLOCOS_OPCIONAIS = (("SHOPEE_PARTNER_ID", BLOCO_SHOPEE),)
 
 URI_PADRAO = "https://radar-meli.invalid/callback"
 
@@ -176,6 +184,28 @@ def fechado(arquivo):
         return False
 
 
+def completar_credenciais(arquivo):
+    """Acrescenta ao credenciais.txt os blocos que ainda nao estao nele.
+
+    Nunca reescreve, nunca reordena, nunca toca no que a pessoa preencheu: so
+    anexa no fim o que falta. Devolve os nomes dos blocos acrescentados."""
+    try:
+        texto = arquivo.read_text(encoding="utf-8")
+    except OSError:
+        return []
+    novos = []
+    for sentinela, bloco in BLOCOS_OPCIONAIS:
+        if sentinela in texto:
+            continue
+        if not texto.endswith("\n"):
+            texto += "\n"
+        texto += bloco
+        novos.append(sentinela)
+    if novos:
+        arquivo.write_text(texto, encoding="utf-8")
+    return novos
+
+
 def preparar(caminho=None, nome=None):
     """Confere a pasta e deixa os arquivos de apoio no lugar.
 
@@ -188,9 +218,13 @@ def preparar(caminho=None, nome=None):
 
     criados = []
     cred = pasta / "credenciais.txt"
+    acrescentados = []
     if not cred.exists():
-        cred.write_text(CREDENCIAIS_EXEMPLO % {"uri": uri}, encoding="utf-8")
+        cred.write_text(CREDENCIAIS_EXEMPLO % {"uri": uri, "shopee": BLOCO_SHOPEE},
+                        encoding="utf-8")
         criados.append(cred.name)
+    else:
+        acrescentados = completar_credenciais(cred)
 
     gi = pasta / ".gitignore"
     if not gi.exists():
@@ -225,7 +259,7 @@ def preparar(caminho=None, nome=None):
 
     return {"pasta": str(pasta), "criados": criados, "protegidos": protegidos,
             "nao_protegidos": nao_protegidos, "pasta_fechada": fechado(pasta),
-            "uri": uri}
+            "acrescentados": acrescentados, "uri": uri}
 
 
 def _main():

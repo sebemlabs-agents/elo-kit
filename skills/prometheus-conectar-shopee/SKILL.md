@@ -26,6 +26,20 @@ ponto — conferido na tela em 22/10/2026. Ela quer um endereço que exista.
 Supabase dela** — a raiz do projeto já basta, não precisa criar função nenhuma. Se ela
 não tiver nem um nem outro, ela não conecta a Shopee hoje; siga com o resto e volte depois.
 
+## Mesma pasta do Mercado Livre — não crie outra
+
+Se ela já conectou o Mercado Livre, **a Shopee vai na mesma pasta**. Não crie pasta separada
+por canal, nem subpasta.
+
+O motivo é o painel: ele monta **uma** tela com um bloco por skill, lendo os arquivos daquela
+pasta. Pastas separadas viram painéis separados, e aí some a coisa que o pacote entrega — a
+visão única de todos os canais. A margem também cruza custo de planilha com venda de canal;
+separado, o cruzamento quebra.
+
+O `credenciais.txt` guarda os dois conjuntos de chave, em blocos diferentes. **Se o arquivo
+dela for de antes da Shopee existir, o pacote acrescenta as linhas novas sozinho** ao preparar
+a pasta, sem tocar no que ela já preencheu.
+
 ## Antes de qualquer comando
 
 Diga três coisas, curto:

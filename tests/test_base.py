@@ -113,11 +113,18 @@ def test_pasta_comum_passa(tmp_path):
     assert pasta_mod.servico_de_sincronizacao(alvo) is None
 
 
-def test_preparar_cria_apoio_e_nunca_sobrescreve_credenciais(tmp_path):
+def test_preparar_cria_apoio_e_nunca_perde_credenciais(tmp_path):
+    """Trocado de igualdade exata para preservacao em 22/10/2026.
+
+    O arquivo PODE ganhar bloco novo quando o pacote ganha canal novo — senao
+    quem ja conectou nunca recebe as linhas da Shopee. O que nao pode, nunca, e
+    perder ou alterar o que a pessoa preencheu."""
     cred = tmp_path / "credenciais.txt"
     cred.write_text("MELI_APP_ID=ja-estava-aqui\n", encoding="utf-8")
     r = pasta_mod.preparar(tmp_path)
-    assert cred.read_text(encoding="utf-8") == "MELI_APP_ID=ja-estava-aqui\n"
+    linhas = cred.read_text(encoding="utf-8").splitlines()
+    assert "MELI_APP_ID=ja-estava-aqui" in linhas
+    assert len([l for l in linhas if l.startswith("MELI_APP_ID=")]) == 1
     assert (tmp_path / ".gitignore").exists()
     assert "credenciais.txt" not in r["criados"]
 
@@ -533,10 +540,14 @@ def test_preparar_sem_nome_mantem_a_padrao(tmp_path):
     assert "MELI_REDIRECT_URI=%s" % pasta_mod.URI_PADRAO in texto
 
 
-def test_preparar_nunca_sobrescreve_credenciais_ja_preenchidas(tmp_path):
+def test_preparar_nunca_altera_credenciais_ja_preenchidas(tmp_path):
+    """Nem mesmo quando a pessoa roda de novo com outro nome de loja: a URL de
+    retorno que ela ja cadastrou nao pode ser trocada pelas costas."""
     (tmp_path / "credenciais.txt").write_text("MELI_APP_ID=123\n", encoding="utf-8")
     pasta_mod.preparar(tmp_path, nome="Outra Loja")
-    assert (tmp_path / "credenciais.txt").read_text(encoding="utf-8") == "MELI_APP_ID=123\n"
+    linhas = (tmp_path / "credenciais.txt").read_text(encoding="utf-8").splitlines()
+    assert "MELI_APP_ID=123" in linhas
+    assert not [l for l in linhas if l.startswith("MELI_REDIRECT_URI=https://outra-loja")]
 
 
 # -------------------------------------------------- dinheiro legivel no painel
@@ -1355,3 +1366,33 @@ def test_credenciais_trazem_o_bloco_da_shopee(tmp_path):
     for chave in ("SHOPEE_PARTNER_ID", "SHOPEE_PARTNER_KEY", "SHOPEE_REDIRECT_URI"):
         assert chave in texto
     assert "nao aceita .invalid" in texto.lower() or "NAO aceita .invalid" in texto
+
+
+def test_credenciais_antigo_ganha_bloco_novo_sem_perder_o_que_tinha(tmp_path):
+    """Quem conectou o Meli antes da Shopee existir precisa receber as linhas
+    novas ao atualizar — senao a skill manda preencher o que nao esta la."""
+    cred = tmp_path / "credenciais.txt"
+    cred.write_text("MELI_APP_ID=123\nMELI_CLIENT_SECRET=abc\n", encoding="utf-8")
+    pasta_mod.preparar(tmp_path)
+    texto = cred.read_text(encoding="utf-8")
+    assert "MELI_APP_ID=123" in texto, "nao pode perder o que a pessoa preencheu"
+    assert "MELI_CLIENT_SECRET=abc" in texto
+    for chave in ("SHOPEE_PARTNER_ID", "SHOPEE_PARTNER_KEY", "SHOPEE_REDIRECT_URI"):
+        assert chave in texto
+
+
+def test_nao_duplica_bloco_quando_roda_de_novo(tmp_path):
+    pasta_mod.preparar(tmp_path)
+    pasta_mod.preparar(tmp_path)
+    texto = (tmp_path / "credenciais.txt").read_text(encoding="utf-8")
+    assert texto.count("SHOPEE_PARTNER_ID") == 1
+
+
+def test_nao_mexe_em_bloco_que_a_pessoa_ja_preencheu(tmp_path):
+    cred = tmp_path / "credenciais.txt"
+    cred.write_text("SHOPEE_PARTNER_ID=999\nSHOPEE_PARTNER_KEY=k\nSHOPEE_REDIRECT_URI=https://x.supabase.co\n",
+                    encoding="utf-8")
+    pasta_mod.preparar(tmp_path)
+    texto = cred.read_text(encoding="utf-8")
+    assert "SHOPEE_PARTNER_ID=999" in texto
+    assert texto.count("SHOPEE_PARTNER_ID") == 1
